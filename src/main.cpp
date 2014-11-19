@@ -17,7 +17,7 @@ int main(int argc, char const* argv[])
 	{
 		std::cerr << "Window could not be created!: " << SDL_GetError() << std::endl;
 	}
-	setAttribute<Attr_GLSize<5,5,32,1>>();
+	setAttribute<Attr_GLSize<5,5,5,32,1>>();
 	obj.initialize(window);
 	obj.close();
 	SDL_DestroyWindow(window);
