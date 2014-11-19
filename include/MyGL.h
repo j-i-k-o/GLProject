@@ -5,6 +5,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <iostream>
 #include <string>
+#include <functional>
 #include "HelperClass.h"
 
 namespace GLLib {
@@ -82,8 +83,25 @@ namespace GLLib {
 					_is_initialized = false;
 				}
 			}
+
+			inline void makeCurrent(SDL_Window* window)
+			{
+				if(SDL_GL_MakeCurrent(window, _context) < 0)
+				{
+					std::cerr << "MakeCurrent failed!: " << SDL_GetError() << std::endl;
+				}
+				else
+				{
+					DEBUG_OUT("SDL_GL_MakeCurrent");
+				}
+			}
+
+			inline void wrapMakeCurrent(SDL_Window* window, std::function<void(void)> func)
+			{
+				this->makeCurrent(window);
+				func();
+			}
+			
 	};
 
 } // namespace GLLib
-
-
