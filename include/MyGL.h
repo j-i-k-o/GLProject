@@ -25,10 +25,11 @@ namespace GLLib {
 	assert(_err_ != GL_STACK_UNDERFLOW); \
 	assert(_err_ != GL_OUT_OF_MEMORY); \
 	assert(_err_ != GL_TABLE_TOO_LARGE); \
-	std::cout << "OK" << std::endl;
+	std::cout << "CHECK_GL_ERROR: OK at  " << __FILE__ << ": " << __LINE__ << std::endl;
 #else
 #define CHECK_GL_ERROR
 #endif
+
 
 	//setAttribute
 	template<typename Attr_First>
@@ -43,6 +44,12 @@ namespace GLLib {
 			setAttribute<Attr_Second,Rests...>();
 		}
 
+	//getID
+	template<typename T>
+		inline GLuint getID(const T &obj)
+		{
+			return obj.getID();
+		}
 
 	class GLObject
 	{
@@ -123,9 +130,10 @@ namespace GLLib {
 		{
 			private:
 				GLuint shader_id;
+				bool is_compiled;
 				Allocator a;
 			public:
-				Shader()
+				Shader() : is_compiled(false)
 				{
 					shader_id = a.construct(Shader_type::SHADER_TYPE);
 					DEBUG_OUT("shader created! shader_id is " << shader_id);
@@ -134,6 +142,7 @@ namespace GLLib {
 				~Shader()
 				{
 					a.destruct(shader_id);
+					CHECK_GL_ERROR;
 					DEBUG_OUT("shader destructed!");
 				}
 
@@ -141,6 +150,7 @@ namespace GLLib {
 				{
 					this->shader_id = obj.shader_id;
 					a.overwrite(obj.a);
+					CHECK_GL_ERROR;
 				}
 
 				Shader& operator=(const Shader<Shader_type, Allocator> &obj)
@@ -148,8 +158,59 @@ namespace GLLib {
 					a.destruct(shader_id);
 					shader_id = obj.shader_id;
 					a.overwrite(obj.a);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("shader copied! shader_id is " << shader_id);
 					return *this;
 				}
+
+				Shader& operator<<(const std::string& str)
+					//read shader source
+				{
+					const char *c_str = str.c_str();
+					const int length = str.length();
+					glShaderSource(shader_id, 1, (const GLchar**)&c_str, &length);
+					CHECK_GL_ERROR;
+					GLint compiled, size;
+					GLsizei len;
+					char* buf;
+					glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled);
+					if(compiled == GL_FALSE)
+					{
+						//compile failed
+						glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
+						if(size > 0)
+						{
+							glGetShaderInfoLog(shader_id, size, &len, buf);
+							std::cerr << "Compile Error!: " << buf << std::endl;
+						}
+					}
+					else
+					{
+						is_compiled = true;
+						DEBUG_OUT("shader compiled!");
+					}
+				}
+
+				inline GLuint getID()
+				{
+					return this->shader_id;
+				}
+		};
+
+	template<typename Allocator = GLAllocator<Alloc_ShaderProg>> 
+		class ShaderProg
+		{
+			private:
+				GLuint shaderprog_id;
+				Allocator a;
+			public:
+				ShaderProg()
+				{
+					shaderprog_id = a.construct();
+					CHECK_GL_ERROR;
+					DEBUG_OUT("shaderprog created! shaderprog id is " << shaderprog_id);
+				}
+
 		};
 
 

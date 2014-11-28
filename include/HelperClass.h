@@ -62,6 +62,7 @@ namespace GLLib
 
 	//available alloc type
 	struct Alloc_Shader {};
+	struct Alloc_ShaderProg {};
 
 
 
@@ -82,6 +83,17 @@ namespace GLLib
 			constexpr static alloc_func_t& allocfunc = glCreateShader; 
 			constexpr static dealloc_func_t& deallocfunc = glDeleteShader; 
 		};
+
+	template<>
+		struct GLAllocTraits<Alloc_ShaderProg>
+		{
+			using alloc_func_t = GLuint(*)();
+			using dealloc_func_t = void(*)(GLuint);
+
+			constexpr static alloc_func_t& allocfunc = glCreateProgram; 
+			constexpr static dealloc_func_t& deallocfunc = glDeleteProgram; 
+		};
+
 
 	/*
 	 * GLAllocator
