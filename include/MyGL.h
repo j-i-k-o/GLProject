@@ -4,11 +4,31 @@
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 #include <iostream>
+#include <cassert>
 #include <string>
 #include <functional>
 #include "HelperClass.h"
 
 namespace GLLib {
+
+	/*
+	 * Check OpenGL Error
+	 */
+
+#ifdef DEBUG
+#define CHECK_GL_ERROR \
+	GLenum _err_ = glGetError(); \
+	assert(_err_ != GL_INVALID_ENUM); \
+	assert(_err_ != GL_INVALID_VALUE); \
+	assert(_err_ != GL_INVALID_OPERATION); \
+	assert(_err_ != GL_STACK_OVERFLOW); \
+	assert(_err_ != GL_STACK_UNDERFLOW); \
+	assert(_err_ != GL_OUT_OF_MEMORY); \
+	assert(_err_ != GL_TABLE_TOO_LARGE); \
+	std::cout << "OK" << std::endl;
+#else
+#define CHECK_GL_ERROR
+#endif
 
 	//setAttribute
 	template<typename Attr_First>
@@ -84,7 +104,7 @@ namespace GLLib {
 				}
 			}
 
-			inline void makeCurrent(SDL_Window* window)
+			void makeCurrent(SDL_Window* window)
 			{
 				if(SDL_GL_MakeCurrent(window, _context) < 0)
 				{
@@ -95,13 +115,43 @@ namespace GLLib {
 					DEBUG_OUT("SDL_GL_MakeCurrent");
 				}
 			}
-
-			inline void wrapMakeCurrent(SDL_Window* window, std::function<void(void)> func)
-			{
-				this->makeCurrent(window);
-				func();
-			}
-			
 	};
+
+	//shader
+	template<typename Shader_type, typename Allocator = GLAllocator<Alloc_Shader>>
+		class Shader
+		{
+			private:
+				GLuint shader_id;
+				Allocator a;
+			public:
+				Shader()
+				{
+					shader_id = a.construct(Shader_type::SHADER_TYPE);
+					DEBUG_OUT("shader created! shader_id is " << shader_id);
+					CHECK_GL_ERROR;
+				}
+				~Shader()
+				{
+					a.destruct(shader_id);
+					DEBUG_OUT("shader destructed!");
+				}
+
+				Shader(const Shader<Shader_type, Allocator> &obj)
+				{
+					this->shader_id = obj.shader_id;
+					a.overwrite(obj.a);
+				}
+
+				Shader& operator=(const Shader<Shader_type, Allocator> &obj)
+				{
+					a.destruct(shader_id);
+					shader_id = obj.shader_id;
+					a.overwrite(obj.a);
+					return *this;
+				}
+		};
+
+
 
 } // namespace GLLib

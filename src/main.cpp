@@ -22,16 +22,27 @@ int main(int argc, char const* argv[])
 	}
 	setAttribute<Attr_GLVersion<3,1>>();
 
-	SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1920, 1080, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_ALLOW_HIGHDPI);
+	SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if(window == NULL)
 	{
 		std::cerr << "Window could not be created!: " << SDL_GetError() << std::endl;
 	}
 	setAttribute<Attr_GLSize<5,5,5,32,1>>();
-	SDL_Thread* threadID = SDL_CreateThread(threadfunction, "MyThread", (void*)(window));
+//	SDL_Thread* threadID = SDL_CreateThread(threadfunction, "MyThread", (void*)(window));
+
+	obj.initialize(window);
+	obj.makeCurrent(window);
+
+	//Shader test
+	using VShader = Shader<VertexShader>;
+	using FShader = Shader<FragmentShader>;
+	VShader shader;
+	VShader shader2;
+	shader = shader2;
 
 	bool quit = false;
 	SDL_Event e;
+//	SDL_WaitThread(threadID, NULL);
 
 	while( !quit )
 	{
@@ -44,9 +55,10 @@ int main(int argc, char const* argv[])
 				quit = true;
 			}
 		}
+		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(1.0, 1.0, 0.0, 1.0);
 		SDL_GL_SwapWindow( window );
 	}
-	SDL_WaitThread(threadID, NULL);
 	obj.close();
 	SDL_DestroyWindow(window);
 	SDL_Quit();

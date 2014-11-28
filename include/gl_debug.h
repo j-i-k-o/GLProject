@@ -7,7 +7,3 @@
 #else
 #define DEBUG_OUT(x)
 #endif
-
-#ifdef DEBUG
-#define CHECK_GL(x)
-#endif
