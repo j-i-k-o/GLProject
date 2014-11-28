@@ -73,17 +73,15 @@ namespace GLLib
 	// these traits must have two functors named "allocfunc" and "deallocfunc".
 	// the return value of allocfunc must be GLuint!
 
-#if 1
 	template<>
 		struct GLAllocTraits<Alloc_Shader>
 		{
-			typedef GLuint(*alloc_func_t)(GLenum);
-			typedef void(*dealloc_func_t)(GLuint);
+			using alloc_func_t = GLuint(*)(GLenum);
+			using dealloc_func_t = void(*)(GLuint);
 
 			constexpr static alloc_func_t& allocfunc = glCreateShader; 
 			constexpr static dealloc_func_t& deallocfunc = glDeleteShader; 
 		};
-#endif
 
 	/*
 	 * GLAllocator
@@ -136,10 +134,10 @@ namespace GLLib
 	 */
 	struct VertexShader
 	{
-		constexpr static GLenum SHADER_TYPE = GL_VERTEX_SHADER;
+		constexpr static auto SHADER_TYPE = GL_VERTEX_SHADER;
 	};
 	struct FragmentShader
 	{
-		constexpr static GLenum SHADER_TYPE = GL_FRAGMENT_SHADER;
+		constexpr static auto SHADER_TYPE = GL_FRAGMENT_SHADER;
 	};
 }
