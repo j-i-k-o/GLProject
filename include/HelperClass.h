@@ -63,6 +63,7 @@ namespace GLLib
 	//available alloc type
 	struct Alloc_Shader {};
 	struct Alloc_ShaderProg {};
+	struct Alloc_VertexBuffer {};
 
 
 
@@ -94,6 +95,28 @@ namespace GLLib
 			constexpr static dealloc_func_t& deallocfunc = glDeleteProgram; 
 		};
 
+	template<>
+		struct GLAllocTraits<Alloc_VertexBuffer>
+		{
+			using alloc_func_t = GLuint(*)();
+			using dealloc_func_t = void(*)(GLuint);
+
+			static GLuint my_glGenBuffers()
+			{
+				GLuint id;
+				glGenBuffers(1, &id);
+				return id;
+			}
+
+			static void my_glDeleteBuffers(GLuint id)
+			{
+				glDeleteBuffers(1,&id);
+			}
+
+			constexpr static alloc_func_t allocfunc = my_glGenBuffers; 
+			constexpr static dealloc_func_t deallocfunc = my_glDeleteBuffers; 
+		};
+
 
 	/*
 	 * GLAllocator
@@ -107,7 +130,7 @@ namespace GLLib
 				int *ref_c;
 				GLAllocator<T>& operator=(const GLAllocator<T> &);
 			public:
-				GLAllocator(){};
+				GLAllocator():ref_c(nullptr){};
 				GLAllocator(const GLAllocator<T> &) = delete;
 
 				template<typename... Args>
@@ -133,11 +156,19 @@ namespace GLLib
 					}
 
 				template<typename Arg_type>
-				void overwrite(const GLAllocator<Arg_type> &obj)
+				void copy(const GLAllocator<Arg_type> &obj)
 				{
-					static_assert( std::is_same<T,Arg_type>::value, "overwrite with differet type!" );
+					static_assert( std::is_same<T,Arg_type>::value, "copy with different type!" );
 					ref_c = obj.ref_c;
 					(*ref_c)++;
+				}
+				
+				template<typename Arg_type>
+				void move(GLAllocator<Arg_type>&& obj)
+				{
+					static_assert( std::is_same<T,Arg_type>::value, "move with different type!" );
+					ref_c = obj.ref_c;
+					obj.ref_c = nullptr;
 				}
 		};
 
@@ -152,4 +183,23 @@ namespace GLLib
 	{
 		constexpr static auto SHADER_TYPE = GL_FRAGMENT_SHADER;
 	};
+
+	/*
+	 * "link-these" struct for ShaderProg
+	 */
+
+	struct link_these{};
+
+	/*
+	 * Target_Type for VertexBuffer
+	 */
+	
+	struct ArrayBuffer
+	{
+		constexpr static auto BUFFER_TARGET = GL_ARRAY_BUFFER;
+	};
+
+	/*
+	 * Usage_Type for VertexBuffer
+	 */
 }

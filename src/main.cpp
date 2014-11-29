@@ -40,6 +40,15 @@ int main(int argc, char const* argv[])
 	VShader shader2;
 	shader = shader2;
 
+	VShader shader3;
+	shader3 = VShader();
+
+	shader3 << "poyopoyo";
+
+	ShaderProg<> program;
+
+	program << shader << shader3 << link_these();
+
 	bool quit = false;
 	SDL_Event e;
 //	SDL_WaitThread(threadID, NULL);

@@ -25,7 +25,7 @@ namespace GLLib {
 	assert(_err_ != GL_STACK_UNDERFLOW); \
 	assert(_err_ != GL_OUT_OF_MEMORY); \
 	assert(_err_ != GL_TABLE_TOO_LARGE); \
-	std::cout << "CHECK_GL_ERROR: OK at  " << __FILE__ << ": " << __LINE__ << std::endl;
+	std::cout << "CHECK_GL_ERROR: OK at  " << __FILE__ << ": " << __LINE__ << " " << __func__ << std::endl;
 #else
 #define CHECK_GL_ERROR
 #endif
@@ -133,7 +133,8 @@ namespace GLLib {
 				bool is_compiled;
 				Allocator a;
 			public:
-				Shader() : is_compiled(false)
+				Shader()
+					: is_compiled(false)
 				{
 					shader_id = a.construct(Shader_type::SHADER_TYPE);
 					DEBUG_OUT("shader created! shader_id is " << shader_id);
@@ -147,9 +148,20 @@ namespace GLLib {
 				}
 
 				Shader(const Shader<Shader_type, Allocator> &obj)
+					: is_compiled(false)
 				{
 					this->shader_id = obj.shader_id;
-					a.overwrite(obj.a);
+					a.copy(obj.a);
+					DEBUG_OUT("shader copied! shader_id is " << shader_id);
+					CHECK_GL_ERROR;
+				}
+
+				Shader(Shader<Shader_type, Allocator>&& obj)
+					: is_compiled(false)
+				{
+					this->shader_id = obj.shader_id;
+					a.move(std::move(obj.a));
+					DEBUG_OUT("shader moved! shader_id is " << shader_id);
 					CHECK_GL_ERROR;
 				}
 
@@ -157,62 +169,194 @@ namespace GLLib {
 				{
 					a.destruct(shader_id);
 					shader_id = obj.shader_id;
-					a.overwrite(obj.a);
+					a.copy(obj.a);
 					CHECK_GL_ERROR;
 					DEBUG_OUT("shader copied! shader_id is " << shader_id);
 					return *this;
 				}
 
+				Shader& operator=(Shader<Shader_type, Allocator>&& obj)
+				{
+					a.destruct(shader_id);
+					shader_id = obj.shader_id;
+					a.move(std::move(obj.a));
+					CHECK_GL_ERROR;
+					DEBUG_OUT("shader moved! shader_id is " << shader_id);
+					return *this;
+				}
+
 				Shader& operator<<(const std::string& str)
-					//read shader source
+					//read shader source and compile
 				{
 					const char *c_str = str.c_str();
 					const int length = str.length();
 					glShaderSource(shader_id, 1, (const GLchar**)&c_str, &length);
 					CHECK_GL_ERROR;
+
 					GLint compiled, size;
 					GLsizei len;
-					char* buf;
+					char* buf = nullptr;
 					glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled);
 					if(compiled == GL_FALSE)
 					{
 						//compile failed
+						std::cerr << "Compile Failed!: ";
 						glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
 						if(size > 0)
 						{
+							buf = new char[size];
 							glGetShaderInfoLog(shader_id, size, &len, buf);
-							std::cerr << "Compile Error!: " << buf << std::endl;
+							std::cerr << buf;
+							delete[] buf;
 						}
+						std::cerr << std::endl;
 					}
 					else
 					{
 						is_compiled = true;
 						DEBUG_OUT("shader compiled!");
 					}
+					return *this;
 				}
 
-				inline GLuint getID()
+				inline GLuint getID() const
 				{
 					return this->shader_id;
 				}
 		};
 
+	//shaderprog
 	template<typename Allocator = GLAllocator<Alloc_ShaderProg>> 
 		class ShaderProg
 		{
 			private:
 				GLuint shaderprog_id;
 				Allocator a;
+				bool isLinked;
 			public:
 				ShaderProg()
+					: isLinked(false)
 				{
 					shaderprog_id = a.construct();
 					CHECK_GL_ERROR;
 					DEBUG_OUT("shaderprog created! shaderprog id is " << shaderprog_id);
 				}
 
+				~ShaderProg()
+				{
+					a.destruct(shaderprog_id);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("shaderprog destructed!");
+				}
+
+				ShaderProg(const ShaderProg<Allocator> &obj)
+					: isLinked(false)
+				{
+					shaderprog_id = obj.shaderprog_id;
+					a.copy(obj.a);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("shaderprog copied! shaderprog id is " << shaderprog_id);
+				}
+
+				ShaderProg(ShaderProg<Allocator>&& obj)
+					: isLinked(false)
+				{
+					shaderprog_id = obj.shaderprog_id;
+					a.move(std::move(obj.a));
+					CHECK_GL_ERROR;
+					DEBUG_OUT("shaderprog moved! shaderprog id is " << shaderprog_id);
+				}
+
+				ShaderProg& operator=(const ShaderProg<Allocator> &obj)
+				{
+					a.destruct(shaderprog_id);
+					shaderprog_id = obj.shaderprog_id;
+					a.copy(obj.a);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("shaderprog copied! shaderprog id is " << shaderprog_id);
+				}
+
+				ShaderProg& operator=(ShaderProg<Allocator>&& obj)
+				{
+					a.destruct(shaderprog_id);
+					shaderprog_id = obj.shaderprog_id;
+					a.move(std::move(obj.a));
+					CHECK_GL_ERROR;
+					DEBUG_OUT("shaderprog moved! shaderprog id is " << shaderprog_id);
+				}
+
+				inline GLuint getID() const
+				{
+					return shaderprog_id;
+				}
+
+				template<typename Shader_type, typename Shader_Allocator>
+					ShaderProg& operator<<(const Shader<Shader_type, Shader_Allocator> &shader)
+					//attach shader
+					{
+						glAttachShader(shaderprog_id, shader.getID());
+						CHECK_GL_ERROR;
+						DEBUG_OUT("attach shader! shader id is "
+								<< shader.getID() 
+								<< ". shaderprog id is" 
+								<< shaderprog_id);
+						return *this;
+					}
+
+				ShaderProg& operator<<(link_these&&)
+					//link shader
+				{
+					glLinkProgram(shaderprog_id);
+
+					GLint linked;
+					int size, len;
+					char* buf = nullptr;
+
+					glGetProgramiv(shaderprog_id, GL_LINK_STATUS, &linked);
+					if(linked == GL_FALSE)
+					{
+						std::cerr << "Link Failed!: ";
+						glGetProgramiv(shaderprog_id, GL_INFO_LOG_LENGTH, &size);
+						if(size > 0)
+						{
+							buf = new char[size];
+							glGetShaderInfoLog(shaderprog_id, size, &len, buf);
+							std::cerr << buf;
+							delete[] buf;
+						}
+						std::cerr << std::endl;
+					}
+					else
+					{
+						isLinked = true;
+						DEBUG_OUT("shader linked!");
+					}
+					return *this;
+				}
+		};
+
+	template<typename TargetType, typename UsageType, typename Allocator = GLAllocator<Alloc_VertexBuffer>>
+		class VertexBuffer
+		{
+			private:
+				GLuint buffer_id;
+				Allocator a;
+
+				void wrap(std::function<void()> dofunc)
+				{
+					glBindBuffer(TargetType::BUFFER_TARGET, buffer_id);
+					dofunc();
+					glBindBuffer(TargetType::BUFFER_TARGET, NULL);
+				}
+			public:
+				VertexBuffer()
+				{
+					buffer_id = a.construct();
+					CHECK_GL_ERROR;
+				}
 		};
 
 
+}
 
-} // namespace GLLib
+
