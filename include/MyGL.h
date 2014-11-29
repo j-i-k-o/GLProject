@@ -16,16 +16,18 @@ namespace GLLib {
 	 */
 
 #ifdef DEBUG
+	GLenum _err_;
+#endif
+#ifdef DEBUG
 #define CHECK_GL_ERROR \
-	GLenum _err_ = glGetError(); \
-	assert(_err_ != GL_INVALID_ENUM); \
-	assert(_err_ != GL_INVALID_VALUE); \
-	assert(_err_ != GL_INVALID_OPERATION); \
-	assert(_err_ != GL_STACK_OVERFLOW); \
-	assert(_err_ != GL_STACK_UNDERFLOW); \
-	assert(_err_ != GL_OUT_OF_MEMORY); \
-	assert(_err_ != GL_TABLE_TOO_LARGE); \
-	std::cout << "CHECK_GL_ERROR: OK at  " << __FILE__ << ": " << __LINE__ << " " << __func__ << std::endl;
+	_err_ = glGetError(); \
+	assert(_err_ != GL_INVALID_ENUM && "GL_INVALID_ENUM"); \
+	assert(_err_ != GL_INVALID_VALUE && "GL_INVALID_VALUE"); \
+	assert(_err_ != GL_INVALID_OPERATION && "GL_INVALID_OPERATION"); \
+	assert(_err_ != GL_STACK_OVERFLOW && "GL_STACK_OVERFLOW"); \
+	assert(_err_ != GL_STACK_UNDERFLOW && "GL_STACK_UNDERFLOW"); \
+	assert(_err_ != GL_OUT_OF_MEMORY && "GL_OUT_OF_MEMORY"); \
+	assert(_err_ != GL_TABLE_TOO_LARGE && "GL_TABLE_TOO_LARGE");
 #else
 #define CHECK_GL_ERROR
 #endif
@@ -33,12 +35,12 @@ namespace GLLib {
 
 	//setAttribute
 	template<typename Attr_First>
-		void setAttribute()
+		inline void setAttribute()
 		{
 			Attr_First::SetAttr();
 		}
 	template<typename Attr_First, typename Attr_Second, typename... Rests>
-		void setAttribute()
+		inline void setAttribute()
 		{
 			setAttribute<Attr_First>();
 			setAttribute<Attr_Second,Rests...>();
@@ -197,15 +199,19 @@ namespace GLLib {
 					GLsizei len;
 					char* buf = nullptr;
 					glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled);
+					CHECK_GL_ERROR;
+					
 					if(compiled == GL_FALSE)
 					{
 						//compile failed
 						std::cerr << "Compile Failed!: ";
 						glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
+						CHECK_GL_ERROR;
 						if(size > 0)
 						{
 							buf = new char[size];
 							glGetShaderInfoLog(shader_id, size, &len, buf);
+							CHECK_GL_ERROR;
 							std::cerr << buf;
 							delete[] buf;
 						}
@@ -307,20 +313,23 @@ namespace GLLib {
 					//link shader
 				{
 					glLinkProgram(shaderprog_id);
+					CHECK_GL_ERROR;
 
 					GLint linked;
-					int size, len;
-					char* buf = nullptr;
+					int size=0, len=0;
 
 					glGetProgramiv(shaderprog_id, GL_LINK_STATUS, &linked);
+					CHECK_GL_ERROR;
 					if(linked == GL_FALSE)
 					{
 						std::cerr << "Link Failed!: ";
 						glGetProgramiv(shaderprog_id, GL_INFO_LOG_LENGTH, &size);
+						CHECK_GL_ERROR;
 						if(size > 0)
 						{
-							buf = new char[size];
-							glGetShaderInfoLog(shaderprog_id, size, &len, buf);
+							char *buf = new char[size];
+							glGetProgramInfoLog(shaderprog_id, size, &len, buf);
+							CHECK_GL_ERROR;
 							std::cerr << buf;
 							delete[] buf;
 						}
@@ -342,21 +351,66 @@ namespace GLLib {
 				GLuint buffer_id;
 				Allocator a;
 
-				void wrap(std::function<void()> dofunc)
+				inline void bind()
 				{
 					glBindBuffer(TargetType::BUFFER_TARGET, buffer_id);
-					dofunc();
-					glBindBuffer(TargetType::BUFFER_TARGET, NULL);
+					CHECK_GL_ERROR;
 				}
+
 			public:
 				VertexBuffer()
 				{
 					buffer_id = a.construct();
+					bind();
+					glBufferData(TargetType::BUFFER_TARGET, 0, NULL, UsageType::BUFFER_USAGE);
 					CHECK_GL_ERROR;
+					DEBUG_OUT("vbuffer created! id is " << buffer_id);
 				}
+
+				VertexBuffer(const VertexBuffer<TargetType, UsageType> &obj)
+				{
+					buffer_id = obj.buffer_id;
+					a.copy(obj.a);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("vbuffer copied! id is " << buffer_id);
+				}
+
+				VertexBuffer(VertexBuffer<TargetType, UsageType>&& obj)
+				{
+					buffer_id = obj.buffer_id;
+					a.move(std::move(obj.a));
+					CHECK_GL_ERROR;
+					DEBUG_OUT("vbuffer moved! id is " << buffer_id);
+				}
+
+				VertexBuffer& operator=(const VertexBuffer<TargetType, UsageType> &obj)
+				{
+					a.destruct(buffer_id);
+					buffer_id = obj.buffer_id;
+					a.copy(obj.a);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("vbuffer copied! id is " << buffer_id);
+				}
+
+				VertexBuffer& operator=(VertexBuffer<TargetType, UsageType>&& obj)
+				{
+					a.destruct(buffer_id);
+					buffer_id = obj.buffer_id;
+					a.move(std::move(obj.a));
+					CHECK_GL_ERROR;
+					DEBUG_OUT("vbuffer moved! id is " << buffer_id);
+				}
+
+
+				~VertexBuffer()
+				{
+					a.destruct(buffer_id);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("vbuffer destructed!");
+				}
+
 		};
 
 
 }
-
 

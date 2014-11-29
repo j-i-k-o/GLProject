@@ -49,6 +49,9 @@ int main(int argc, char const* argv[])
 
 	program << shader << shader3 << link_these();
 
+	VertexBuffer<ArrayBuffer, StaticDraw> buffer;
+	VertexBuffer<ArrayBuffer, StaticDraw> buffer2;
+
 	bool quit = false;
 	SDL_Event e;
 //	SDL_WaitThread(threadID, NULL);

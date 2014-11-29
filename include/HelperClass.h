@@ -72,8 +72,8 @@ namespace GLLib
 		struct GLAllocTraits{};
 
 	// note:
-	// these traits must have two functors named "allocfunc" and "deallocfunc".
-	// the return value of allocfunc must be GLuint!
+	// these traits must have two function object named "allocfunc" and "deallocfunc".
+	// the return type of allocfunc must be GLuint.
 
 	template<>
 		struct GLAllocTraits<Alloc_Shader>
@@ -110,7 +110,7 @@ namespace GLLib
 
 			static void my_glDeleteBuffers(GLuint id)
 			{
-				glDeleteBuffers(1,&id);
+				glDeleteBuffers(1, &id);
 			}
 
 			constexpr static alloc_func_t allocfunc = my_glGenBuffers; 
@@ -196,10 +196,15 @@ namespace GLLib
 	
 	struct ArrayBuffer
 	{
-		constexpr static auto BUFFER_TARGET = GL_ARRAY_BUFFER;
+		constexpr static GLenum BUFFER_TARGET = GL_ARRAY_BUFFER;
 	};
 
 	/*
 	 * Usage_Type for VertexBuffer
 	 */
+
+	struct StaticDraw
+	{
+		constexpr static GLenum BUFFER_USAGE = GL_STATIC_DRAW;
+	};
 }
