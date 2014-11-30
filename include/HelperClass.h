@@ -5,11 +5,58 @@
 #include <SDL2/SDL_opengl.h>
 #include "gl_debug.h"
 #include <functional>
+#include <array>
+#include <type_traits>
+#include <utility>
 
 namespace GLLib
 {
 
-	/*
+	/**
+	 * Multi static array object
+	 *
+	 */
+
+	template<typename T, std::size_t First, std::size_t... Rests>
+		struct multi_array_traits
+		{
+			using type = std::array<typename multi_array_traits<T, Rests...>::type, First>; 
+		};
+
+	template<typename T, std::size_t Size>
+		struct multi_array_traits<T, Size>
+		{
+			using type = std::array<T, Size>;
+		};
+
+	template<typename T, std::size_t... Sizes>
+	using multi_array = typename multi_array_traits<T, Sizes...>::type;
+
+	/**
+	 * make_common_array function
+	 *
+	 */
+
+	template<typename... Args>
+		struct common_array_type
+		{
+			using type = std::array<typename std::decay<typename std::common_type<Args...>::type>::type, sizeof... (Args)>;
+		};
+
+	template<typename... Args>
+		constexpr typename common_array_type<Args...>::type make_common_array(Args&&... args)
+		{
+			return typename common_array_type<Args...>::type{{std::forward<Args>(args)...}};
+		}
+
+	
+
+
+	
+
+
+
+	/**
 	 * SetAttribute helper
 	 */
 	template<int Major=3, int Minor=1>
@@ -49,7 +96,7 @@ namespace GLLib
 				}
 			};
 
-	/*
+	/**
 	 *	ScrenSize helper
 	 */
 	template<int32_t Width, int32_t Height>
@@ -118,7 +165,7 @@ namespace GLLib
 		};
 
 
-	/*
+	/**
 	 * GLAllocator
 	 *
 	 */
@@ -172,7 +219,7 @@ namespace GLLib
 				}
 		};
 
-	/*
+	/**
 	 * Shader_type
 	 */
 	struct VertexShader
@@ -184,13 +231,13 @@ namespace GLLib
 		constexpr static auto SHADER_TYPE = GL_FRAGMENT_SHADER;
 	};
 
-	/*
+	/**
 	 * "link-these" struct for ShaderProg
 	 */
 
 	struct link_these{};
 
-	/*
+	/**
 	 * Target_Type for VertexBuffer
 	 */
 	
@@ -199,7 +246,7 @@ namespace GLLib
 		constexpr static GLenum BUFFER_TARGET = GL_ARRAY_BUFFER;
 	};
 
-	/*
+	/**
 	 * Usage_Type for VertexBuffer
 	 */
 

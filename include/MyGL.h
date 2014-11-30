@@ -142,6 +142,7 @@ namespace GLLib {
 					DEBUG_OUT("shader created! shader_id is " << shader_id);
 					CHECK_GL_ERROR;
 				}
+
 				~Shader()
 				{
 					a.destruct(shader_id);
@@ -200,11 +201,11 @@ namespace GLLib {
 					char* buf = nullptr;
 					glGetShaderiv(shader_id, GL_COMPILE_STATUS, &compiled);
 					CHECK_GL_ERROR;
-					
+
 					if(compiled == GL_FALSE)
 					{
 						//compile failed
-						std::cerr << "Compile Failed!: ";
+						std::cerr << "id " << shader_id << " Compile Failed!: ";
 						glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
 						CHECK_GL_ERROR;
 						if(size > 0)
@@ -322,7 +323,7 @@ namespace GLLib {
 					CHECK_GL_ERROR;
 					if(linked == GL_FALSE)
 					{
-						std::cerr << "Link Failed!: ";
+						std::cerr << "id "<< shaderprog_id <<" Link Failed!: ";
 						glGetProgramiv(shaderprog_id, GL_INFO_LOG_LENGTH, &size);
 						CHECK_GL_ERROR;
 						if(size > 0)
@@ -351,13 +352,16 @@ namespace GLLib {
 				GLuint buffer_id;
 				Allocator a;
 
+
+
+			public:
+
 				inline void bind()
 				{
 					glBindBuffer(TargetType::BUFFER_TARGET, buffer_id);
 					CHECK_GL_ERROR;
 				}
 
-			public:
 				VertexBuffer()
 				{
 					buffer_id = a.construct();
@@ -365,6 +369,13 @@ namespace GLLib {
 					glBufferData(TargetType::BUFFER_TARGET, 0, NULL, UsageType::BUFFER_USAGE);
 					CHECK_GL_ERROR;
 					DEBUG_OUT("vbuffer created! id is " << buffer_id);
+				}
+
+				~VertexBuffer()
+				{
+					a.destruct(buffer_id);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("vbuffer destructed!");
 				}
 
 				VertexBuffer(const VertexBuffer<TargetType, UsageType> &obj)
@@ -390,6 +401,7 @@ namespace GLLib {
 					a.copy(obj.a);
 					CHECK_GL_ERROR;
 					DEBUG_OUT("vbuffer copied! id is " << buffer_id);
+					return *this;
 				}
 
 				VertexBuffer& operator=(VertexBuffer<TargetType, UsageType>&& obj)
@@ -399,18 +411,25 @@ namespace GLLib {
 					a.move(std::move(obj.a));
 					CHECK_GL_ERROR;
 					DEBUG_OUT("vbuffer moved! id is " << buffer_id);
+					return *this;
 				}
 
-
-				~VertexBuffer()
+				inline GLuint getID() const
 				{
-					a.destruct(buffer_id);
+					return buffer_id;
+				}
+
+				template<typename T, std::size_t Size_Elem, std::size_t dim>
+					VertexBuffer& setArray(const multi_array<T, Size_Elem, dim> &array)
+				{
+					static_assert(dim <= 4, "array's dim must be four or less.");
+					bind();
+					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
 					CHECK_GL_ERROR;
-					DEBUG_OUT("vbuffer destructed!");
+					DEBUG_OUT("allocate success! buffer id is " << buffer_id);
+					return *this;
 				}
 
 		};
-
-
 }
 

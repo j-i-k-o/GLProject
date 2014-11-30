@@ -38,19 +38,18 @@ int main(int argc, char const* argv[])
 	using FShader = Shader<FragmentShader>;
 	VShader shader;
 	VShader shader2;
-	shader = shader2;
+	shader = std::move(shader2);
 
-	VShader shader3;
-	shader3 = VShader();
-
-	shader3 << "poyopoyo";
+	VShader shader3 = VShader();
 
 	ShaderProg<> program;
 
-	program << shader << shader3 << link_these();
+	program << shader << (shader3 << "poyopoyo") << link_these();
 
 	VertexBuffer<ArrayBuffer, StaticDraw> buffer;
-	VertexBuffer<ArrayBuffer, StaticDraw> buffer2;
+
+	auto array = make_common_array(make_common_array(1,2,3), make_common_array(4,5,6), make_common_array(7,8,9), make_common_array(10,11,12));
+	buffer.setArray<int, 4, 3>(array);
 
 	bool quit = false;
 	SDL_Event e;
