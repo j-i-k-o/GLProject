@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <vector>
 #include <functional>
 #include "HelperClass.h"
 
@@ -16,7 +17,7 @@ namespace GLLib {
 	 */
 
 #ifdef DEBUG
-	GLenum _err_;
+	extern GLenum _err_;
 #endif
 #ifdef DEBUG
 #define CHECK_GL_ERROR \
@@ -103,7 +104,7 @@ namespace GLLib {
 				return success;
 			}
 
-			void close()
+			void finalize()
 			{
 				if(_is_initialized)
 				{
@@ -124,6 +125,28 @@ namespace GLLib {
 					DEBUG_OUT("SDL_GL_MakeCurrent");
 				}
 			}
+
+			GLObject& operator<<(Begin&& obj)
+				//initializer
+			{
+				initialize(obj.m_window);
+				return *this;
+			}
+
+			GLObject& operator<<(MakeCurrent&& obj)
+				//make current
+			{
+				makeCurrent(obj.m_window);
+				return *this;
+			}
+
+			GLObject& operator<<(End&&)
+				//finalizer
+			{
+				finalize();
+				return *this;
+			}
+
 	};
 
 	//shader
@@ -132,11 +155,10 @@ namespace GLLib {
 		{
 			private:
 				GLuint shader_id;
-				bool is_compiled;
+				bool is_compiled = false;
 				Allocator a;
 			public:
 				Shader()
-					: is_compiled(false)
 				{
 					shader_id = a.construct(Shader_type::SHADER_TYPE);
 					DEBUG_OUT("shader created! shader_id is " << shader_id);
@@ -151,7 +173,6 @@ namespace GLLib {
 				}
 
 				Shader(const Shader<Shader_type, Allocator> &obj)
-					: is_compiled(false)
 				{
 					this->shader_id = obj.shader_id;
 					a.copy(obj.a);
@@ -160,7 +181,6 @@ namespace GLLib {
 				}
 
 				Shader(Shader<Shader_type, Allocator>&& obj)
-					: is_compiled(false)
 				{
 					this->shader_id = obj.shader_id;
 					a.move(std::move(obj.a));
@@ -345,6 +365,7 @@ namespace GLLib {
 				}
 		};
 
+	//vertexbuffer
 	template<typename TargetType, typename UsageType, typename Allocator = GLAllocator<Alloc_VertexBuffer>>
 		class VertexBuffer
 		{
@@ -352,7 +373,17 @@ namespace GLLib {
 				GLuint buffer_id;
 				Allocator a;
 
+				bool isSetArray = false; 
+				GLenum ArrayEnum;
+				std::size_t Size_Elem;
+				std::size_t Dim;
 
+				inline void setSizeElem_Dim(std::size_t Size_Elem, std::size_t Dim)
+				{
+					this->Size_Elem = Size_Elem;
+					this->Dim = Dim;
+					isSetArray = true;
+				}
 
 			public:
 
@@ -365,9 +396,8 @@ namespace GLLib {
 				VertexBuffer()
 				{
 					buffer_id = a.construct();
-					bind();
-					glBufferData(TargetType::BUFFER_TARGET, 0, NULL, UsageType::BUFFER_USAGE);
 					CHECK_GL_ERROR;
+					bind();
 					DEBUG_OUT("vbuffer created! id is " << buffer_id);
 				}
 
@@ -378,7 +408,7 @@ namespace GLLib {
 					DEBUG_OUT("vbuffer destructed!");
 				}
 
-				VertexBuffer(const VertexBuffer<TargetType, UsageType> &obj)
+				VertexBuffer(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 				{
 					buffer_id = obj.buffer_id;
 					a.copy(obj.a);
@@ -386,7 +416,7 @@ namespace GLLib {
 					DEBUG_OUT("vbuffer copied! id is " << buffer_id);
 				}
 
-				VertexBuffer(VertexBuffer<TargetType, UsageType>&& obj)
+				VertexBuffer(VertexBuffer<TargetType, UsageType, Allocator>&& obj)
 				{
 					buffer_id = obj.buffer_id;
 					a.move(std::move(obj.a));
@@ -394,7 +424,7 @@ namespace GLLib {
 					DEBUG_OUT("vbuffer moved! id is " << buffer_id);
 				}
 
-				VertexBuffer& operator=(const VertexBuffer<TargetType, UsageType> &obj)
+				VertexBuffer& operator=(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 				{
 					a.destruct(buffer_id);
 					buffer_id = obj.buffer_id;
@@ -404,7 +434,7 @@ namespace GLLib {
 					return *this;
 				}
 
-				VertexBuffer& operator=(VertexBuffer<TargetType, UsageType>&& obj)
+				VertexBuffer& operator=(VertexBuffer<TargetType, UsageType, Allocator>&& obj)
 				{
 					a.destruct(buffer_id);
 					buffer_id = obj.buffer_id;
@@ -419,17 +449,156 @@ namespace GLLib {
 					return buffer_id;
 				}
 
-				template<typename T, std::size_t Size_Elem, std::size_t dim>
-					VertexBuffer& setArray(const multi_array<T, Size_Elem, dim> &array)
+				template<typename T,std::size_t Size_Elem, std::size_t Dim>
+					VertexBuffer& operator<<(const std::array<std::array<T, Dim>, Size_Elem> &array)
+					// Set Array for std::array 
+					{
+						static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+						static_assert( Dim <= 4, "Invalid dimension" );
+						static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
+						bind();
+						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
+						setSizeElem_Dim(Size_Elem, Dim);
+						return *this;
+					}
+
+				template<typename T,std::size_t Size_Elem, std::size_t Dim>
+					VertexBuffer& operator<<(const T (&array)[Size_Elem][Dim])
+					// Set Array for raw array
+					{
+						static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+						static_assert( Dim <= 4, "Invalid dimension" );
+						static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
+						bind();
+						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array, UsageType::BUFFER_USAGE);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
+						setSizeElem_Dim(Size_Elem, Dim);
+						return *this;
+					}
+
+				template<typename T>
+					VertexBuffer& operator<<(const std::vector<std::vector<T>> &array)
+					// Set Array for std::vector
+					{
+						static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+						std::size_t Size_Elem = 0;
+						std::size_t Dim = 0;
+						bool first = true;
+						if((Size_Elem = array.size()) == 0)
+						{
+							std::cerr << "Zero Elem! --did nothing." << std::endl;
+							return *this;
+						}
+						for (auto&& sub_array : array) {
+							if(first)
+							{
+								first = false;
+								Dim = sub_array.size();
+							}
+							else
+							{
+								if(Dim != sub_array.size())
+								{
+									std::cerr << "diffelent length array! --did nothing." << std::endl;
+									return *this;
+								}
+							}
+							if(sub_array.size() > 4)
+							{
+								std::cerr << "Invalid dimension! --did nothing" << std::endl;
+								return *this;
+							}
+						}
+						bind();
+						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
+						setSizeElem_Dim(Size_Elem, Dim);
+						return *this;
+					}
+		};
+
+	//vertexarray
+	template<typename Allocator=GLAllocator<Alloc_VertexArray>> 
+		class VertexArray
+		{
+			private:
+				GLuint varray_id;
+				Allocator a;
+
+
+			public:
+
+				inline void bind()
 				{
-					static_assert(dim <= 4, "array's dim must be four or less.");
-					bind();
-					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
+					glBindVertexArray(varray_id);
 					CHECK_GL_ERROR;
-					DEBUG_OUT("allocate success! buffer id is " << buffer_id);
+				}
+
+				VertexArray()
+				{
+					varray_id = a.construct();
+					CHECK_GL_ERROR;
+					bind();
+					DEBUG_OUT("varray created! id is " << varray_id);
+				}
+
+				~VertexArray()
+				{
+					a.destruct(varray_id);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("varray destructed!");
+				}
+
+				VertexArray(const VertexArray<Allocator> &obj)
+				{
+					varray_id = obj.varray_id;
+					a.copy(obj.a);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("varray copied! id is " << varray_id);
+				}
+
+				VertexArray(VertexArray<Allocator>&& obj)
+				{
+					varray_id = obj.varray_id;
+					a.move(std::move(obj.a));
+					CHECK_GL_ERROR;
+					DEBUG_OUT("varray moved! id is " << varray_id);
+				}
+
+				VertexArray& operator=(const VertexArray<Allocator> &obj)
+				{
+					a.destruct(varray_id);
+					varray_id = obj.varray_id;
+					a.copy(obj.a);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("varray copied! id is " << varray_id);
 					return *this;
 				}
 
-		};
-}
+				VertexArray& operator=(VertexArray<Allocator>&& obj)
+				{
+					a.destruct(varray_id);
+					varray_id = obj.varray_id;
+					a.move(std::move(obj.a));
+					CHECK_GL_ERROR;
+					DEBUG_OUT("varray moved! id is " << varray_id);
+					return *this;
+				}
 
+				inline GLuint getID() const
+				{
+					return varray_id;
+				}
+		};
+
+	//some tips
+	using VBO = VertexBuffer<ArrayBuffer, StaticDraw>;
+	using IBO = VertexBuffer<ElementArrayBuffer, StaticDraw>;
+	using VAO = VertexArray<>;
+
+
+}

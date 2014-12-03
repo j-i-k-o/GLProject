@@ -1,4 +1,6 @@
 #include "../include/MyGL.h"
+#include "../include/MyGL.h"
+#include <vector>
 
 GLLib::GLObject obj;
 
@@ -6,8 +8,8 @@ int threadfunction(void* data)
 {
 	using namespace GLLib;
 
-	obj.initialize(static_cast<SDL_Window*>(data));
-	obj.makeCurrent(static_cast<SDL_Window*>(data));
+//	obj.initialize(static_cast<SDL_Window*>(data));
+//	obj.makeCurrent(static_cast<SDL_Window*>(data));
 	return 0;
 }
 
@@ -30,8 +32,8 @@ int main(int argc, char const* argv[])
 	setAttribute<Attr_GLSize<5,5,5,32,1>>();
 //	SDL_Thread* threadID = SDL_CreateThread(threadfunction, "MyThread", (void*)(window));
 
-	obj.initialize(window);
-	obj.makeCurrent(window);
+	obj << Begin(window);
+	obj << MakeCurrent(window);
 
 	//Shader test
 	using VShader = Shader<VertexShader>;
@@ -46,10 +48,23 @@ int main(int argc, char const* argv[])
 
 	program << shader << (shader3 << "poyopoyo") << link_these();
 
-	VertexBuffer<ArrayBuffer, StaticDraw> buffer;
+	VBO buffer;
+	IBO buffer2;
 
-	auto array = make_common_array(make_common_array(1,2,3), make_common_array(4,5,6), make_common_array(7,8,9), make_common_array(10,11,12));
-	buffer.setArray<int, 4, 3>(array);
+	auto array = make_common_array(make_common_array(1.0,2.0,3.0), make_common_array(4.0,5.0,6.0), make_common_array(7.0,8.0,9.0), make_common_array(10.0,11.0,12.0));
+	GLfloat array2[][3] = {{1,2,3},{4,5,6},{7,8,9},{10,100,19},{3,4,5}};
+
+	std::vector<std::vector<GLfloat>> array3;
+	array3.push_back(std::vector<GLfloat>{1,2,3});
+	array3.push_back(std::vector<GLfloat>{4,5,6});
+	array3.push_back(std::vector<GLfloat>{7,8,9});
+	array3.push_back(std::vector<GLfloat>{1,2,3});
+	array3.push_back(std::vector<GLfloat>{1,2,4});
+
+	buffer << array3;
+
+	VAO varray,varray2,varray3;
+	varray = varray3;
 
 	bool quit = false;
 	SDL_Event e;
@@ -70,7 +85,7 @@ int main(int argc, char const* argv[])
 		glClearColor(1.0, 1.0, 0.0, 1.0);
 		SDL_GL_SwapWindow( window );
 	}
-	obj.close();
+	obj << End();
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	return 0;

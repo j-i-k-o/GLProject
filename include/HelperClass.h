@@ -49,15 +49,81 @@ namespace GLLib
 			return typename common_array_type<Args...>::type{{std::forward<Args>(args)...}};
 		}
 
-	
+	/**
+	 * find nth number from non-type variadic template
+	 *
+	 */
+
+	template<typename T, int n, T First, T... Rests> 
+		struct find_elem
+		{
+			constexpr static T value = find_elem<T, n-1, Rests...>::value;
+		};
+	template<typename T, T First, T... Rests>
+		struct find_elem<T, 0, First, Rests...>
+		{
+			constexpr static T value = First;
+		};
+
+	/**
+	 * std::is_same for variadic template
+	 *
+	 */
+
+	template<typename T, typename Type_First, typename... Type_Rests>
+		struct is_exist
+		{
+			constexpr static bool value = std::is_same<T,Type_First>::value?true:is_exist<T, Type_Rests...>::value;
+		};
+
+	template<typename T, typename Type_Last>
+		struct is_exist<T,Type_Last>
+		{
+			constexpr static bool value = std::is_same<T,Type_Last>::value;
+		};
+
+	/*
+	 * connect type and OpenGL Enum
+	 *
+	 */
+
+	template<typename T>
+		struct getEnum{
+			static_assert( is_exist<T,GLbyte,GLubyte,GLshort,GLushort,GLint,GLuint,GLfloat,GLdouble>::value, "Invalid type" );
+			constexpr static GLenum value =
+				std::is_same<T, GLbyte>::value	?		GL_BYTE				:
+				std::is_same<T, GLubyte>::value	?		GL_UNSIGNED_BYTE	:
+				std::is_same<T, GLshort>::value	?		GL_SHORT				:
+				std::is_same<T, GLushort>::value	?		GL_UNSIGNED_SHORT	:
+				std::is_same<T, GLint>::value		?		GL_INT				:
+				std::is_same<T, GLuint>::value	?		GL_UNSIGNED_INT	:
+				std::is_same<T, GLfloat>::value	?		GL_FLOAT				:
+				std::is_same<T, GLdouble>::value	?		GL_DOUBLE			: static_cast<GLenum>(NULL);
+		};
 
 
-	
+	/**
+	 * GLObject Initialize and Destroy struct
+	 *
+	 */
+
+	struct Begin
+	{
+		SDL_Window* m_window;
+		Begin(SDL_Window* window):m_window(window){};
+	};
+	struct MakeCurrent
+	{
+		SDL_Window* m_window;
+		MakeCurrent(SDL_Window* window):m_window(window){};
+	};
+	struct End{};
 
 
 
 	/**
 	 * SetAttribute helper
+	 *
 	 */
 	template<int Major=3, int Minor=1>
 		struct Attr_GLVersion
@@ -111,6 +177,7 @@ namespace GLLib
 	struct Alloc_Shader {};
 	struct Alloc_ShaderProg {};
 	struct Alloc_VertexBuffer {};
+	struct Alloc_VertexArray {};
 
 
 
@@ -162,6 +229,28 @@ namespace GLLib
 
 			constexpr static alloc_func_t allocfunc = my_glGenBuffers; 
 			constexpr static dealloc_func_t deallocfunc = my_glDeleteBuffers; 
+		};
+
+	template<>
+		struct GLAllocTraits<Alloc_VertexArray>
+		{
+			using alloc_func_t = GLuint(*)();
+			using dealloc_func_t = void(*)(GLuint);
+
+			static GLuint my_glGenVertexArrays()
+			{
+				GLuint id;
+				glGenVertexArrays(1, &id);
+				return id;
+			}
+
+			static void my_glDeleteVertexArrays(GLuint id)
+			{
+				glDeleteVertexArrays(1, &id);
+			}
+
+			constexpr static alloc_func_t allocfunc = my_glGenVertexArrays; 
+			constexpr static dealloc_func_t deallocfunc = my_glDeleteVertexArrays; 
 		};
 
 
@@ -244,6 +333,11 @@ namespace GLLib
 	struct ArrayBuffer
 	{
 		constexpr static GLenum BUFFER_TARGET = GL_ARRAY_BUFFER;
+	};
+
+	struct ElementArrayBuffer //maybe for IBO
+	{
+		constexpr static GLenum BUFFER_TARGET = GL_ELEMENT_ARRAY_BUFFER;
 	};
 
 	/**
