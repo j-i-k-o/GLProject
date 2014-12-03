@@ -82,23 +82,57 @@ namespace GLLib
 			constexpr static bool value = std::is_same<T,Type_Last>::value;
 		};
 
-	/*
+	/**
+	 * select type by constant expression
+	 *
+	 */
+
+	template<bool b, typename T, typename F>
+		struct type_if
+		{
+			using type = F;
+		};
+
+	template<typename T, typename F>
+		struct type_if<true, T, F>
+		{
+			using type = T;
+		};
+
+
+	/**
 	 * connect type and OpenGL Enum
 	 *
 	 */
 
 	template<typename T>
 		struct getEnum{
-			static_assert( is_exist<T,GLbyte,GLubyte,GLshort,GLushort,GLint,GLuint,GLfloat,GLdouble>::value, "Invalid type" );
+//			static_assert( is_exist<T,GLbyte,GLubyte,GLshort,GLushort,GLint,GLuint,GLfloat,GLdouble>::value, "Invalid type" );
 			constexpr static GLenum value =
-				std::is_same<T, GLbyte>::value	?		GL_BYTE				:
-				std::is_same<T, GLubyte>::value	?		GL_UNSIGNED_BYTE	:
-				std::is_same<T, GLshort>::value	?		GL_SHORT				:
-				std::is_same<T, GLushort>::value	?		GL_UNSIGNED_SHORT	:
-				std::is_same<T, GLint>::value		?		GL_INT				:
-				std::is_same<T, GLuint>::value	?		GL_UNSIGNED_INT	:
-				std::is_same<T, GLfloat>::value	?		GL_FLOAT				:
-				std::is_same<T, GLdouble>::value	?		GL_DOUBLE			: static_cast<GLenum>(NULL);
+				std::is_same<T, GLbyte>::value?GL_BYTE	:
+				std::is_same<T, GLubyte>::value?	GL_UNSIGNED_BYTE:
+				std::is_same<T, GLshort>::value?	GL_SHORT	:
+				std::is_same<T, GLushort>::value?GL_UNSIGNED_SHORT:
+				std::is_same<T, GLint>::value?GL_INT:
+				std::is_same<T, GLuint>::value?GL_UNSIGNED_INT:
+				std::is_same<T, GLfloat>::value?GL_FLOAT:
+				std::is_same<T, GLdouble>::value?GL_DOUBLE: static_cast<GLenum>(NULL);
+			static_assert(value!=static_cast<GLenum>(NULL),"Invalid type");
+		};
+
+	template<GLenum TypeEnum>
+		struct getType
+		{
+			using type =
+				type_if<TypeEnum == GL_BYTE, GLbyte,
+				type_if<TypeEnum == GL_UNSIGNED_BYTE, GLubyte,
+				type_if<TypeEnum == GL_SHORT, GLshort,
+				type_if<TypeEnum == GL_UNSIGNED_SHORT, GLushort,
+				type_if<TypeEnum == GL_INT, GLint,
+				type_if<TypeEnum == GL_UNSIGNED_INT, GLuint,
+				type_if<TypeEnum == GL_FLOAT, GLfloat,
+				type_if<TypeEnum == GL_DOUBLE, GLdouble,std::nullptr_t>>>>>>>>;
+			static_assert(std::is_same<type,std::nullptr_t>::value, "Invalid Enum");
 		};
 
 
@@ -192,29 +226,20 @@ namespace GLLib
 	template<>
 		struct GLAllocTraits<Alloc_Shader>
 		{
-			using alloc_func_t = GLuint(*)(GLenum);
-			using dealloc_func_t = void(*)(GLuint);
-
-			constexpr static alloc_func_t& allocfunc = glCreateShader; 
-			constexpr static dealloc_func_t& deallocfunc = glDeleteShader; 
+			constexpr static auto& allocfunc = glCreateShader; 
+			constexpr static auto& deallocfunc = glDeleteShader; 
 		};
 
 	template<>
 		struct GLAllocTraits<Alloc_ShaderProg>
 		{
-			using alloc_func_t = GLuint(*)();
-			using dealloc_func_t = void(*)(GLuint);
-
-			constexpr static alloc_func_t& allocfunc = glCreateProgram; 
-			constexpr static dealloc_func_t& deallocfunc = glDeleteProgram; 
+			constexpr static auto& allocfunc = glCreateProgram; 
+			constexpr static auto& deallocfunc = glDeleteProgram; 
 		};
 
 	template<>
 		struct GLAllocTraits<Alloc_VertexBuffer>
 		{
-			using alloc_func_t = GLuint(*)();
-			using dealloc_func_t = void(*)(GLuint);
-
 			static GLuint my_glGenBuffers()
 			{
 				GLuint id;
@@ -227,15 +252,13 @@ namespace GLLib
 				glDeleteBuffers(1, &id);
 			}
 
-			constexpr static alloc_func_t allocfunc = my_glGenBuffers; 
-			constexpr static dealloc_func_t deallocfunc = my_glDeleteBuffers; 
+			constexpr static auto allocfunc = my_glGenBuffers; 
+			constexpr static auto deallocfunc = my_glDeleteBuffers; 
 		};
 
 	template<>
 		struct GLAllocTraits<Alloc_VertexArray>
 		{
-			using alloc_func_t = GLuint(*)();
-			using dealloc_func_t = void(*)(GLuint);
 
 			static GLuint my_glGenVertexArrays()
 			{
@@ -249,8 +272,8 @@ namespace GLLib
 				glDeleteVertexArrays(1, &id);
 			}
 
-			constexpr static alloc_func_t allocfunc = my_glGenVertexArrays; 
-			constexpr static dealloc_func_t deallocfunc = my_glDeleteVertexArrays; 
+			constexpr static auto allocfunc = my_glGenVertexArrays; 
+			constexpr static auto deallocfunc = my_glDeleteVertexArrays; 
 		};
 
 
