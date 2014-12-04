@@ -252,8 +252,11 @@ namespace GLLib
 				glDeleteBuffers(1, &id);
 			}
 
-			constexpr static auto allocfunc = my_glGenBuffers; 
-			constexpr static auto deallocfunc = my_glDeleteBuffers; 
+			using allocfunc_t = GLuint(*)(void);
+			using deallocfunc_t = void(*)(GLuint);
+
+			constexpr static allocfunc_t allocfunc = &my_glGenBuffers; 
+			constexpr static deallocfunc_t deallocfunc = &my_glDeleteBuffers; 
 		};
 
 	template<>
@@ -272,8 +275,11 @@ namespace GLLib
 				glDeleteVertexArrays(1, &id);
 			}
 
-			constexpr static auto allocfunc = my_glGenVertexArrays; 
-			constexpr static auto deallocfunc = my_glDeleteVertexArrays; 
+			using allocfunc_t = GLuint(*)(void);
+			using deallocfunc_t = void(*)(GLuint);
+
+			constexpr static allocfunc_t allocfunc = &my_glGenVertexArrays; 
+			constexpr static deallocfunc_t deallocfunc = &my_glDeleteVertexArrays; 
 		};
 
 

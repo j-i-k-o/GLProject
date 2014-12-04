@@ -48,7 +48,7 @@ int main(int argc, char const* argv[])
 
 	program << shader << (shader3 << "poyopoyo") << link_these();
 
-	VBO buffer;
+	VertexBuffer<ArrayBuffer, StaticDraw> buffer;
 	IBO buffer2;
 
 	auto array = make_common_array(make_common_array(1.0,2.0,3.0), make_common_array(4.0,5.0,6.0), make_common_array(7.0,8.0,9.0), make_common_array(10.0,11.0,12.0));
