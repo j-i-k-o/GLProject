@@ -20,6 +20,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <tuple>
 #include <functional>
 #include "HelperClass.h"
 
@@ -35,15 +36,13 @@ namespace GLLib {
 #ifdef DEBUG
 #define CHECK_GL_ERROR \
 	_err_ = glGetError(); \
-	assert(_err_ != GL_INVALID_ENUM && "GL_INVALID_ENUM"); \
-	assert(_err_ != GL_INVALID_VALUE && "GL_INVALID_VALUE"); \
-	assert(_err_ != GL_INVALID_OPERATION && "GL_INVALID_OPERATION"); \
-	assert(_err_ != GL_STACK_OVERFLOW && "GL_STACK_OVERFLOW"); \
-	assert(_err_ != GL_STACK_UNDERFLOW && "GL_STACK_UNDERFLOW"); \
-	assert(_err_ != GL_OUT_OF_MEMORY && "GL_OUT_OF_MEMORY"); \
-	assert(_err_ != GL_TABLE_TOO_LARGE && "GL_TABLE_TOO_LARGE");
-#else
-#define CHECK_GL_ERROR
+	if(_err_ == GL_INVALID_ENUM) std::cerr << "GL_INVALID_ENUM" << " at " << __FILE__ << ": " << __LINE__ << std::endl; \
+	if(_err_ == GL_INVALID_VALUE) std::cerr << "GL_INVALID_VALUE" << " at " << __FILE__ << ": " << __LINE__ << std::endl; \
+	if(_err_ == GL_INVALID_OPERATION) std::cerr << "GL_INVALID_OPERATION" << " at " << __FILE__ << ": " << __LINE__ << std::endl; \
+	if(_err_ == GL_STACK_OVERFLOW) std::cerr << "GL_STACK_OVERFLOW" << " at " << __FILE__ << ": " << __LINE__ << std::endl; \
+	if(_err_ == GL_STACK_UNDERFLOW) std::cerr << "GL_STACK_UNDERFLOW" << " at " << __FILE__ << ": " << __LINE__ << std::endl; \
+	if(_err_ == GL_OUT_OF_MEMORY) std::cerr << "GL_OUT_OF_MEMORY" << " at " << __FILE__ << ": " << __LINE__ << std::endl; \
+	if(_err_ == GL_TABLE_TOO_LARGE) std::cerr << "GL_TABLE_TOO_LARGE" << " at " << __FILE__ << ": " << __LINE__ << std::endl;
 #endif
 
 
@@ -66,6 +65,18 @@ namespace GLLib {
 		{
 			return obj.getID();
 		}
+
+	// class forward declaration
+	
+	template<typename Shader_type, typename Allocator>
+		class Shader;
+	template<typename Allocator> 
+		class ShaderProg;
+	template<typename TargetType, typename UsageType, typename Allocator>
+		class VertexBuffer;
+	template<typename Allocator> 
+		class VertexArray;
+
 
 	class GLObject
 	{
@@ -160,6 +171,37 @@ namespace GLLib {
 				return *this;
 			}
 
+			template<typename UsageType, typename Allocator_sh, typename Allocator_vb, typename Allocator_va>
+			void connectAttrib(const ShaderProg<Allocator_sh> &prog, const VertexBuffer<ArrayBuffer, UsageType, Allocator_vb> &buffer, const VertexArray<Allocator_va> &varray, const std::string &name)
+			// TODO: make parser for searching name.c_str() string in prog source
+			{
+				if(!buffer.isSetArray)
+				{
+					std::cerr << "Array is not set! --did nothing" << std::endl;
+					return;
+				}
+				if(getSizeof(buffer.ArrayEnum) == 0)
+				{
+					std::cerr << "buffer ArrayEnum is invalid! --did nothing" << std::endl;
+					return;
+				}
+				varray.bind();
+				buffer.bind();
+				GLint attribloc = glGetAttribLocation(prog.getID(), name.c_str());
+				CHECK_GL_ERROR;
+				glVertexAttribPointer(attribloc, buffer.Dim, buffer.ArrayEnum, GL_FALSE, buffer.Dim*getSizeof(buffer.ArrayEnum), 0);
+				CHECK_GL_ERROR;
+				glEnableVertexAttribArray(attribloc);
+				CHECK_GL_ERROR;
+			}
+
+			template<typename Allocator_sh>
+			void disconnectAttrib(const ShaderProg<Allocator_sh> &prog, const std::string &name)
+			{
+				glDisableVertexAttribArray(glGetAttribLocation(prog.getID(), name.c_str()));
+				CHECK_GL_ERROR;
+			}
+
 	};
 
 	//shader
@@ -182,7 +224,7 @@ namespace GLLib {
 				{
 					a.destruct(shader_id);
 					CHECK_GL_ERROR;
-					DEBUG_OUT("shader destructed!");
+					DEBUG_OUT("shader id " << shader_id << " destructed!");
 				}
 
 				Shader(const Shader<Shader_type, Allocator> &obj)
@@ -286,7 +328,7 @@ namespace GLLib {
 				{
 					a.destruct(shaderprog_id);
 					CHECK_GL_ERROR;
-					DEBUG_OUT("shaderprog destructed!");
+					DEBUG_OUT("shaderprog id " << shaderprog_id << " destructed!");
 				}
 
 				ShaderProg(const ShaderProg<Allocator> &obj)
@@ -391,16 +433,23 @@ namespace GLLib {
 				std::size_t Size_Elem;
 				std::size_t Dim;
 
-				inline void setSizeElem_Dim(std::size_t Size_Elem, std::size_t Dim)
+				template<typename Type> 
+				inline void setSizeElem_Dim_Type(std::size_t Size_Elem, std::size_t Dim)
 				{
 					this->Size_Elem = Size_Elem;
 					this->Dim = Dim;
+					this->ArrayEnum = getEnum<Type>::value;
 					isSetArray = true;
 				}
 
 			public:
 
-				inline void bind()
+				//friend function
+				template<typename UsageType_v, typename Allocator_sh, typename Allocator_vb, typename Allocator_va>
+					friend void 
+					GLObject::connectAttrib(const ShaderProg<Allocator_sh> &prog, const VertexBuffer<ArrayBuffer, UsageType_v, Allocator_vb> &buffer, const VertexArray<Allocator_va> &varray, const std::string &name);
+
+				inline void bind() const
 				{
 					glBindBuffer(TargetType::BUFFER_TARGET, buffer_id);
 					CHECK_GL_ERROR;
@@ -418,7 +467,7 @@ namespace GLLib {
 				{
 					a.destruct(buffer_id);
 					CHECK_GL_ERROR;
-					DEBUG_OUT("vbuffer destructed!");
+					DEBUG_OUT("vbuffer id " << buffer_id << " destructed!");
 				}
 
 				VertexBuffer(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
@@ -473,7 +522,7 @@ namespace GLLib {
 						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-						setSizeElem_Dim(Size_Elem, Dim);
+						setSizeElem_Dim_Type<T>(Size_Elem, Dim);
 						return *this;
 					}
 
@@ -488,7 +537,7 @@ namespace GLLib {
 						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array, UsageType::BUFFER_USAGE);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-						setSizeElem_Dim(Size_Elem, Dim);
+						setSizeElem_Dim_Type<T>(Size_Elem, Dim);
 						return *this;
 					}
 
@@ -529,7 +578,7 @@ namespace GLLib {
 						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-						setSizeElem_Dim(Size_Elem, Dim);
+						setSizeElem_Dim_Type<T>(Size_Elem, Dim);
 						return *this;
 					}
 		};
@@ -545,7 +594,7 @@ namespace GLLib {
 
 			public:
 
-				inline void bind()
+				inline void bind() const
 				{
 					glBindVertexArray(varray_id);
 					CHECK_GL_ERROR;
@@ -563,7 +612,7 @@ namespace GLLib {
 				{
 					a.destruct(varray_id);
 					CHECK_GL_ERROR;
-					DEBUG_OUT("varray destructed!");
+					DEBUG_OUT("varray id " << varray_id << " destructed!");
 				}
 
 				VertexArray(const VertexArray<Allocator> &obj)
@@ -612,6 +661,5 @@ namespace GLLib {
 	using VBO = VertexBuffer<ArrayBuffer, StaticDraw>;
 	using IBO = VertexBuffer<ElementArrayBuffer, StaticDraw>;
 	using VAO = VertexArray<>;
-
 
 }

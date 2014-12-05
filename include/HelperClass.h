@@ -107,7 +107,6 @@ namespace GLLib
 
 	template<typename T>
 		struct getEnum{
-//			static_assert( is_exist<T,GLbyte,GLubyte,GLshort,GLushort,GLint,GLuint,GLfloat,GLdouble>::value, "Invalid type" );
 			constexpr static GLenum value =
 				std::is_same<T, GLbyte>::value?GL_BYTE	:
 				std::is_same<T, GLubyte>::value?	GL_UNSIGNED_BYTE:
@@ -135,9 +134,22 @@ namespace GLLib
 			static_assert(std::is_same<type,std::nullptr_t>::value, "Invalid Enum");
 		};
 
+	constexpr std::size_t getSizeof(GLenum TypeEnum)
+	{
+		return
+			(TypeEnum == GL_BYTE) ? sizeof(GLbyte) :
+			(TypeEnum == GL_UNSIGNED_BYTE) ? sizeof(GLubyte) :
+			(TypeEnum == GL_SHORT) ? sizeof(GLshort) :
+			(TypeEnum == GL_UNSIGNED_SHORT) ? sizeof(GLushort) :
+			(TypeEnum == GL_INT) ? sizeof(GLint) :
+			(TypeEnum == GL_UNSIGNED_INT) ? sizeof(GLuint) :
+			(TypeEnum == GL_FLOAT) ? sizeof(GLfloat) :
+			(TypeEnum == GL_DOUBLE) ? sizeof(GLdouble) : 0;
+	}
+
 
 	/**
-	 * GLObject Initialize and Destroy struct
+	 * GLObject Initialize and Finalize destruct
 	 *
 	 */
 
@@ -342,11 +354,11 @@ namespace GLLib
 	 */
 	struct VertexShader
 	{
-		constexpr static auto SHADER_TYPE = GL_VERTEX_SHADER;
+		constexpr static GLenum SHADER_TYPE = GL_VERTEX_SHADER;
 	};
 	struct FragmentShader
 	{
-		constexpr static auto SHADER_TYPE = GL_FRAGMENT_SHADER;
+		constexpr static GLenum SHADER_TYPE = GL_FRAGMENT_SHADER;
 	};
 
 	/**

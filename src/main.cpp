@@ -66,6 +66,9 @@ int main(int argc, char* argv[])
 	VAO varray,varray2,varray3;
 	varray = varray3;
 
+	obj.disconnectAttrib(program, "poyo");
+	obj.connectAttrib(program, buffer, varray3, "poyo");
+
 	bool quit = false;
 	SDL_Event e;
 //	SDL_WaitThread(threadID, NULL);
