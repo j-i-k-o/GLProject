@@ -10,7 +10,7 @@ CC=clang
 CFLAGS=-Wall 
 #CXXFLAGS=-Wextra -std=c++11 -Wall -Werror 
 CXXFLAGS=-Wextra -std=c++11 -Wall -g -O0  
-CPPFLAGS= -DGLEW_STATIC -DDEBUG
+CPPFLAGS= -DGLEW_STATIC -DDEBUG -DUSE_SDL
 #program name
 PROG=build/prog
 #source codes

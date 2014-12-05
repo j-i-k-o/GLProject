@@ -1,8 +1,21 @@
 #pragma once
 
+#ifdef USE_SDL
 #include <SDL2/SDL.h>
+#endif
+
+#ifdef USE_GLFW
+#include <GLFW/glfw3.h>
+#endif
+
+#ifdef USE_SDL
 #include <GL/glew.h>
+#endif
+
+#ifdef USE_SDL
 #include <SDL2/SDL_opengl.h>
+#endif
+
 #include <iostream>
 #include <cassert>
 #include <string>

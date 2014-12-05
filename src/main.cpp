@@ -13,7 +13,7 @@ int threadfunction(void* data)
 	return 0;
 }
 
-int main(int argc, char const* argv[])
+int main(int argc, char* argv[])
 {
 	using namespace GLLib;
 
