@@ -1,20 +1,11 @@
 #pragma once
 
-#ifdef USE_SDL
 #include <SDL2/SDL.h>
-#endif
-
-#ifdef USE_GLFW
-#include <GLFW/glfw3.h>
-#endif
-
-#ifdef USE_SDL
 #include <GL/glew.h>
-#endif
-
-#ifdef USE_SDL
 #include <SDL2/SDL_opengl.h>
-#endif
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
 #include <cassert>
@@ -67,7 +58,7 @@ namespace GLLib {
 		}
 
 	// class forward declaration
-	
+
 	template<typename Shader_type, typename Allocator>
 		class Shader;
 	template<typename Allocator> 
@@ -172,35 +163,35 @@ namespace GLLib {
 			}
 
 			template<typename UsageType, typename Allocator_sh, typename Allocator_vb, typename Allocator_va>
-			void connectAttrib(const ShaderProg<Allocator_sh> &prog, const VertexBuffer<ArrayBuffer, UsageType, Allocator_vb> &buffer, const VertexArray<Allocator_va> &varray, const std::string &name)
-			// TODO: make parser for searching name.c_str() string in prog source
-			{
-				if(!buffer.isSetArray)
+				void connectAttrib(const ShaderProg<Allocator_sh> &prog, const VertexBuffer<ArrayBuffer, UsageType, Allocator_vb> &buffer, const VertexArray<Allocator_va> &varray, const std::string &name)
+				// TODO: make parser for searching name.c_str() string in prog source
 				{
-					std::cerr << "Array is not set! --did nothing" << std::endl;
-					return;
+					if(!buffer.isSetArray)
+					{
+						std::cerr << "Array is not set! --did nothing" << std::endl;
+						return;
+					}
+					if(getSizeof(buffer.ArrayEnum) == 0)
+					{
+						std::cerr << "buffer ArrayEnum is invalid! --did nothing" << std::endl;
+						return;
+					}
+					varray.bind();
+					buffer.bind();
+					GLint attribloc = glGetAttribLocation(prog.getID(), name.c_str());
+					CHECK_GL_ERROR;
+					glVertexAttribPointer(attribloc, buffer.Dim, buffer.ArrayEnum, GL_FALSE, buffer.Dim*getSizeof(buffer.ArrayEnum), 0);
+					CHECK_GL_ERROR;
+					glEnableVertexAttribArray(attribloc);
+					CHECK_GL_ERROR;
 				}
-				if(getSizeof(buffer.ArrayEnum) == 0)
-				{
-					std::cerr << "buffer ArrayEnum is invalid! --did nothing" << std::endl;
-					return;
-				}
-				varray.bind();
-				buffer.bind();
-				GLint attribloc = glGetAttribLocation(prog.getID(), name.c_str());
-				CHECK_GL_ERROR;
-				glVertexAttribPointer(attribloc, buffer.Dim, buffer.ArrayEnum, GL_FALSE, buffer.Dim*getSizeof(buffer.ArrayEnum), 0);
-				CHECK_GL_ERROR;
-				glEnableVertexAttribArray(attribloc);
-				CHECK_GL_ERROR;
-			}
 
 			template<typename Allocator_sh>
-			void disconnectAttrib(const ShaderProg<Allocator_sh> &prog, const std::string &name)
-			{
-				glDisableVertexAttribArray(glGetAttribLocation(prog.getID(), name.c_str()));
-				CHECK_GL_ERROR;
-			}
+				void disconnectAttrib(const ShaderProg<Allocator_sh> &prog, const std::string &name)
+				{
+					glDisableVertexAttribArray(glGetAttribLocation(prog.getID(), name.c_str()));
+					CHECK_GL_ERROR;
+				}
 
 	};
 
@@ -314,10 +305,15 @@ namespace GLLib {
 			private:
 				GLuint shaderprog_id;
 				Allocator a;
-				bool isLinked;
+				bool isLinked = false;
 			public:
+				inline void bind() const
+				{
+					glUseProgram(shaderprog_id);
+					CHECK_GL_ERROR;
+				}
+
 				ShaderProg()
-					: isLinked(false)
 				{
 					shaderprog_id = a.construct();
 					CHECK_GL_ERROR;
@@ -332,7 +328,6 @@ namespace GLLib {
 				}
 
 				ShaderProg(const ShaderProg<Allocator> &obj)
-					: isLinked(false)
 				{
 					shaderprog_id = obj.shaderprog_id;
 					a.copy(obj.a);
@@ -341,7 +336,6 @@ namespace GLLib {
 				}
 
 				ShaderProg(ShaderProg<Allocator>&& obj)
-					: isLinked(false)
 				{
 					shaderprog_id = obj.shaderprog_id;
 					a.move(std::move(obj.a));
@@ -418,6 +412,93 @@ namespace GLLib {
 					}
 					return *this;
 				}
+
+
+				//select appropriate glUniform function
+				template <typename... ArgTypes>
+					void setUniformXt(const std::string &str, ArgTypes... args)
+					{
+						//for glUniformXi, glUniformXf
+						using first_type = typename std::tuple_element<0, std::tuple<ArgTypes...>>::type;
+
+						static_assert(is_all_same<ArgTypes...>::value, "ArgTypes must be all same");
+						static_assert(is_exist<first_type, GLint, GLfloat>::value, "ArgType must be GLint or GLfloat");
+						static_assert((1 <= sizeof...(ArgTypes))&&(sizeof...(ArgTypes) <= 4), "invalid ArgTypes Num");
+						bind();
+
+						auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+						CHECK_GL_ERROR;
+						if(loc == -1)
+						{
+							std::cerr << "uniform variable " << str << " cannot be found";
+							return;
+						}
+
+						glUniformXt<sizeof...(ArgTypes), first_type>::func(loc, args...);
+						CHECK_GL_ERROR;
+					}
+
+				
+				template <std::size_t Size_Elem, std::size_t Dim, typename T>
+					void setUniformXtv(const std::string &str, const T (&array)[Size_Elem][Dim])
+					{
+						//for glUniformXiv, glUniformXfv
+						static_assert((1 <= Dim)&&(Dim <= 4), "invalid Dim");
+						static_assert(is_exist<T,GLint, GLfloat>::value,"array type must be GLint for GLfloat");
+						bind();
+
+						auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+						CHECK_GL_ERROR;
+						if(loc == -1)
+						{
+							std::cerr << "uniform variable " << str << " cannot be found";
+							return;
+						}
+
+						glUniformXtv<Dim, T>::func(loc, Size_Elem, array);
+						CHECK_GL_ERROR;
+					}
+
+				template <std::size_t Size_Elem, std::size_t Dim, typename T>
+					void setUniformXtv(const std::string &str, const std::array<std::array<T,Dim>,Size_Elem>& array)
+					{
+						//for glUniformXiv, glUniformXfv
+						static_assert((1 <= Dim)&&(Dim <= 4), "invalid Dim");
+						static_assert(is_exist<T,GLint, GLfloat>::value,"array type must be GLint for GLfloat");
+						bind();
+
+						auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+						CHECK_GL_ERROR;
+						if(loc == -1)
+						{
+							std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
+							return;
+						}
+
+						glUniformXtv<Dim, T>::func(loc, Size_Elem, array.data());
+						CHECK_GL_ERROR;
+					}
+
+				//TODO: setUniformMatrixXtv
+				
+
+				//for glm
+				inline void setUniformMatrix4fv_glm(const std::string &str, const glm::mat4 &matrix)
+				{
+					auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+					CHECK_GL_ERROR;
+					if(loc == -1)
+					{
+						std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
+						return;
+					}
+
+					bind();
+					glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
+				}
+
+
+
 		};
 
 	//vertexbuffer
@@ -434,13 +515,13 @@ namespace GLLib {
 				std::size_t Dim;
 
 				template<typename Type> 
-				inline void setSizeElem_Dim_Type(std::size_t Size_Elem, std::size_t Dim)
-				{
-					this->Size_Elem = Size_Elem;
-					this->Dim = Dim;
-					this->ArrayEnum = getEnum<Type>::value;
-					isSetArray = true;
-				}
+					inline void setSizeElem_Dim_Type(std::size_t Size_Elem, std::size_t Dim)
+					{
+						this->Size_Elem = Size_Elem;
+						this->Dim = Dim;
+						this->ArrayEnum = getEnum<Type>::value;
+						isSetArray = true;
+					}
 
 			public:
 

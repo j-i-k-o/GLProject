@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 	VertexBuffer<ArrayBuffer, StaticDraw> buffer;
 	IBO buffer2;
 
-	auto array = make_common_array(make_common_array(1.0,2.0,3.0), make_common_array(4.0,5.0,6.0), make_common_array(7.0,8.0,9.0), make_common_array(10.0,11.0,12.0));
+	auto array = make_common_array(make_common_array(1.0f,2.0f,3.0f), make_common_array(4.0f,5.0f,6.0f), make_common_array(7.0f,8.0f,9.0f), make_common_array(10.0f,11.0f,12.0f));
 	GLfloat array2[][3] = {{1,2,3},{4,5,6},{7,8,9},{10,100,19},{3,4,5}};
 
 	std::vector<std::vector<GLfloat>> array3;
@@ -61,13 +61,15 @@ int main(int argc, char* argv[])
 	array3.push_back(std::vector<GLfloat>{1,2,3});
 	array3.push_back(std::vector<GLfloat>{1,2,4});
 
-	buffer << array3;
+	buffer << array;
 
 	VAO varray,varray2,varray3;
 	varray = varray3;
 
 	obj.disconnectAttrib(program, "poyo");
 	obj.connectAttrib(program, buffer, varray3, "poyo");
+
+	program.setUniformXt("poyo", 2,3,4);
 
 	bool quit = false;
 	SDL_Event e;

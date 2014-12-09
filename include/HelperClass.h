@@ -5,6 +5,7 @@
 #include <SDL2/SDL_opengl.h>
 #include "gl_debug.h"
 #include <functional>
+#include <vector>
 #include <array>
 #include <type_traits>
 #include <utility>
@@ -30,7 +31,28 @@ namespace GLLib
 		};
 
 	template<typename T, std::size_t... Sizes>
-	using multi_array = typename multi_array_traits<T, Sizes...>::type;
+		using multi_array = typename multi_array_traits<T, Sizes...>::type;
+
+	/**
+	 * Multi vector array object
+	 *
+	 */
+
+	template<typename T, std::size_t Num>
+		struct multi_vector_traits
+		{
+			static_assert(Num > 0, "invalid template argument");
+			using type = std::vector<typename multi_vector_traits<T, Num-1>::type>;
+		};
+
+	template<typename T>
+		struct multi_vector_traits<T, 1>
+		{
+			using type = std::vector<T>;
+		};
+
+	template<typename T, std::size_t Size>
+		using multi_vector = typename multi_vector_traits<T, Size>::type;
 
 	/**
 	 * make_common_array function
@@ -66,7 +88,7 @@ namespace GLLib
 		};
 
 	/**
-	 * std::is_same for variadic template
+	 * std::is_same for variadic template (exist)
 	 *
 	 */
 
@@ -78,6 +100,23 @@ namespace GLLib
 
 	template<typename T, typename Type_Last>
 		struct is_exist<T,Type_Last>
+		{
+			constexpr static bool value = std::is_same<T,Type_Last>::value;
+		};
+
+	/**
+	 * std::is_same for variadic template (all)
+	 *
+	 */
+
+	template<typename T, typename Type_First, typename... Type_Rests>
+		struct is_all_same
+		{
+			constexpr static bool value = std::is_same<T,Type_First>::value?is_all_same<T, Type_Rests...>::value:false;
+		};
+
+	template<typename T, typename Type_Last>
+		struct is_all_same<T,Type_Last>
 		{
 			constexpr static bool value = std::is_same<T,Type_Last>::value;
 		};
@@ -333,20 +372,20 @@ namespace GLLib
 					}
 
 				template<typename Arg_type>
-				void copy(const GLAllocator<Arg_type> &obj)
-				{
-					static_assert( std::is_same<T,Arg_type>::value, "copy with different type!" );
-					ref_c = obj.ref_c;
-					(*ref_c)++;
-				}
-				
+					void copy(const GLAllocator<Arg_type> &obj)
+					{
+						static_assert( std::is_same<T,Arg_type>::value, "copy with different type!" );
+						ref_c = obj.ref_c;
+						(*ref_c)++;
+					}
+
 				template<typename Arg_type>
-				void move(GLAllocator<Arg_type>&& obj)
-				{
-					static_assert( std::is_same<T,Arg_type>::value, "move with different type!" );
-					ref_c = obj.ref_c;
-					obj.ref_c = nullptr;
-				}
+					void move(GLAllocator<Arg_type>&& obj)
+					{
+						static_assert( std::is_same<T,Arg_type>::value, "move with different type!" );
+						ref_c = obj.ref_c;
+						obj.ref_c = nullptr;
+					}
 		};
 
 	/**
@@ -370,7 +409,7 @@ namespace GLLib
 	/**
 	 * Target_Type for VertexBuffer
 	 */
-	
+
 	struct ArrayBuffer
 	{
 		constexpr static GLenum BUFFER_TARGET = GL_ARRAY_BUFFER;
@@ -389,4 +428,117 @@ namespace GLLib
 	{
 		constexpr static GLenum BUFFER_USAGE = GL_STATIC_DRAW;
 	};
+
+	/**
+	 * setUniform
+	 *
+	 */
+
+	template<std::size_t size, typename Type>
+		struct glUniformXt{};
+	template<>
+		struct glUniformXt<1,GLint>
+		{
+			constexpr static auto& func = glUniform1i;
+		};
+	template<>
+		struct glUniformXt<2,GLint>
+		{
+			constexpr static auto& func = glUniform2i;
+		};
+	template<>
+		struct glUniformXt<3,GLint>
+		{
+			constexpr static auto& func = glUniform3i;
+		};
+	template<>
+		struct glUniformXt<4,GLint>
+		{
+			constexpr static auto& func = glUniform4i;
+		};
+	template<>
+		struct glUniformXt<1,GLfloat>
+		{
+			constexpr static auto& func = glUniform1f;
+		};
+	template<>
+		struct glUniformXt<2,GLfloat>
+		{
+			constexpr static auto& func = glUniform2f;
+		};
+	template<>
+		struct glUniformXt<3,GLfloat>
+		{
+			constexpr static auto& func = glUniform3f;
+		};
+	template<>
+		struct glUniformXt<4,GLfloat>
+		{
+			constexpr static auto& func = glUniform4f;
+		};
+
+
+	template<std::size_t size, typename Type>
+		struct glUniformXtv{};
+	template<>
+		struct glUniformXtv<1,GLint>
+		{
+			constexpr static auto& func = glUniform1iv;
+		};
+	template<>
+		struct glUniformXtv<2,GLint>
+		{
+			constexpr static auto& func = glUniform2iv;
+		};
+	template<>
+		struct glUniformXtv<3,GLint>
+		{
+			constexpr static auto& func = glUniform3iv;
+		};
+	template<>
+		struct glUniformXtv<4,GLint>
+		{
+			constexpr static auto& func = glUniform4iv;
+		};
+	template<>
+		struct glUniformXtv<1,GLfloat>
+		{
+			constexpr static auto& func = glUniform1fv;
+		};
+	template<>
+		struct glUniformXtv<2,GLfloat>
+		{
+			constexpr static auto& func = glUniform2fv;
+		};
+	template<>
+		struct glUniformXtv<3,GLfloat>
+		{
+			constexpr static auto& func = glUniform3fv;
+		};
+	template<>
+		struct glUniformXtv<4,GLfloat>
+		{
+			constexpr static auto& func = glUniform4fv;
+		};
+
+
+	template<std::size_t size, typename Type>
+		struct glUniformMatrixXtv{};
+	template<>
+		struct glUniformMatrixXtv<2,GLfloat>
+		{
+			constexpr static auto& func = glUniformMatrix2fv;
+		};
+	template<>
+		struct glUniformMatrixXtv<3,GLfloat>
+		{
+			constexpr static auto& func = glUniformMatrix3fv;
+		};
+	template<>
+		struct glUniformMatrixXtv<4,GLfloat>
+		{
+			constexpr static auto& func = glUniformMatrix4fv;
+		};
+
+
 }
