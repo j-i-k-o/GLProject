@@ -184,6 +184,7 @@ namespace GLLib {
 					CHECK_GL_ERROR;
 					glEnableVertexAttribArray(attribloc);
 					CHECK_GL_ERROR;
+					varray.unbind();
 				}
 
 			template<typename Allocator_sh>
@@ -192,6 +193,27 @@ namespace GLLib {
 					glDisableVertexAttribArray(glGetAttribLocation(prog.getID(), name.c_str()));
 					CHECK_GL_ERROR;
 				}
+
+			//draw
+			
+			template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
+			void drawElements(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo)
+			{
+				varray.bind();
+				ibo.bind();
+				//
+				varray.unbind();
+				program.bind();
+				varray.bind();
+				//
+				if(!ibo.isSetArray)
+				{
+					std::cerr << "IBO isn't set. cannot draw" << std::endl;
+				}
+				//else
+				glDrawElements(GL_TRIANGLE_FAN, ibo.Size_Elem, ibo.ArrayEnum, NULL);
+				CHECK_GL_ERROR;
+			}
 
 	};
 
@@ -257,9 +279,11 @@ namespace GLLib {
 				Shader& operator<<(const std::string& str)
 					//read shader source and compile
 				{
-					const char *c_str = str.c_str();
+					const char *source = str.c_str();
 					const int length = str.length();
-					glShaderSource(shader_id, 1, (const GLchar**)&c_str, &length);
+					glShaderSource(shader_id, 1, (const GLchar**)&source, &length);
+					CHECK_GL_ERROR;
+					glCompileShader(shader_id);
 					CHECK_GL_ERROR;
 
 					GLint compiled, size;
@@ -271,7 +295,7 @@ namespace GLLib {
 					if(compiled == GL_FALSE)
 					{
 						//compile failed
-						std::cerr << "id " << shader_id << " Compile Failed!: ";
+						std::cerr << "id " << shader_id << " Compile Failed!: " << std::endl;
 						glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &size);
 						CHECK_GL_ERROR;
 						if(size > 0)
@@ -310,6 +334,12 @@ namespace GLLib {
 				inline void bind() const
 				{
 					glUseProgram(shaderprog_id);
+					CHECK_GL_ERROR;
+				}
+
+				inline void unbind() const
+				{
+					glUseProgram(0);
 					CHECK_GL_ERROR;
 				}
 
@@ -392,7 +422,7 @@ namespace GLLib {
 					CHECK_GL_ERROR;
 					if(linked == GL_FALSE)
 					{
-						std::cerr << "id "<< shaderprog_id <<" Link Failed!: ";
+						std::cerr << "id "<< shaderprog_id <<" Link Failed!: " << std::endl;
 						glGetProgramiv(shaderprog_id, GL_INFO_LOG_LENGTH, &size);
 						CHECK_GL_ERROR;
 						if(size > 0)
@@ -430,7 +460,7 @@ namespace GLLib {
 						CHECK_GL_ERROR;
 						if(loc == -1)
 						{
-							std::cerr << "uniform variable " << str << " cannot be found";
+							std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
 							return;
 						}
 
@@ -451,7 +481,7 @@ namespace GLLib {
 						CHECK_GL_ERROR;
 						if(loc == -1)
 						{
-							std::cerr << "uniform variable " << str << " cannot be found";
+							std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
 							return;
 						}
 
@@ -485,6 +515,7 @@ namespace GLLib {
 				//for glm
 				inline void setUniformMatrix4fv_glm(const std::string &str, const glm::mat4 &matrix)
 				{
+					bind();
 					auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
 					CHECK_GL_ERROR;
 					if(loc == -1)
@@ -493,7 +524,6 @@ namespace GLLib {
 						return;
 					}
 
-					bind();
 					glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
 				}
 
@@ -530,10 +560,26 @@ namespace GLLib {
 					friend void 
 					GLObject::connectAttrib(const ShaderProg<Allocator_sh> &prog, const VertexBuffer<ArrayBuffer, UsageType_v, Allocator_vb> &buffer, const VertexArray<Allocator_va> &varray, const std::string &name);
 
+				template<typename RenderMode, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
+					friend void
+					GLObject::drawElements(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo);
+
+
 				inline void bind() const
 				{
 					glBindBuffer(TargetType::BUFFER_TARGET, buffer_id);
 					CHECK_GL_ERROR;
+				}
+
+				inline void unbind() const
+				{
+					glBindBuffer(TargetType::BUFFER_TARGET, 0);
+					CHECK_GL_ERROR;
+				}
+
+				inline bool getisSetArray() const
+				{
+					return isSetArray;
 				}
 
 				VertexBuffer()
@@ -679,6 +725,20 @@ namespace GLLib {
 				{
 					glBindVertexArray(varray_id);
 					CHECK_GL_ERROR;
+				}
+
+				inline void unbind() const
+				{
+					glBindVertexArray(0);
+					CHECK_GL_ERROR;
+				}
+
+				template<typename IBOAlloc>
+				inline void bindIBO(const VertexBuffer<ElementArrayBuffer, IBOAlloc> &ibo) const
+				{
+					bind();
+					ibo.bind();
+					unbind();
 				}
 
 				VertexArray()

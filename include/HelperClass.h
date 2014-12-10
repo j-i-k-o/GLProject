@@ -540,5 +540,15 @@ namespace GLLib
 			constexpr static auto& func = glUniformMatrix4fv;
 		};
 
+	/**
+	 * render mode
+	 *
+	 */
+
+	struct rm_Triangles
+	{
+		constexpr static GLenum RENDER_MODE = GL_TRIANGLES; 
+	};
+	
 
 }

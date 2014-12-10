@@ -35,41 +35,42 @@ int main(int argc, char* argv[])
 	obj << Begin(window);
 	obj << MakeCurrent(window);
 
+	if(GLEW_VERSION_4_1)
+	{
+		std::cout << "4.1 supported" << std::endl;
+	}
+
 	//Shader test
 	using VShader = Shader<VertexShader>;
 	using FShader = Shader<FragmentShader>;
-	VShader shader;
-	VShader shader2;
-	shader = std::move(shader2);
-
-	VShader shader3 = VShader();
+	VShader vshader;
+	FShader fshader;
 
 	ShaderProg<> program;
 
-	program << shader << (shader3 << "poyopoyo") << link_these();
+	vshader << "#version 120\nattribute vec2 LVertexPos2D; void main() { gl_Position = vec4( LVertexPos2D.x, LVertexPos2D.y, 0, 1 ); }";
+	fshader << "#version 120\nvoid main() { gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ); }";
 
-	VertexBuffer<ArrayBuffer, StaticDraw> buffer;
-	IBO buffer2;
+	program << vshader << fshader << link_these();
 
-	auto array = make_common_array(make_common_array(1.0f,2.0f,3.0f), make_common_array(4.0f,5.0f,6.0f), make_common_array(7.0f,8.0f,9.0f), make_common_array(10.0f,11.0f,12.0f));
-	GLfloat array2[][3] = {{1,2,3},{4,5,6},{7,8,9},{10,100,19},{3,4,5}};
+	VBO vertex;
+	IBO index;
+	GLfloat vertexData[][2] = 
+	{
+		{-0.5f, -0.5f},
+		{0.5f, -0.5f},
+		{0.5f, 0.5f},
+		{-0.5f, 0.5f}
+	};
 
-	std::vector<std::vector<GLfloat>> array3;
-	array3.push_back(std::vector<GLfloat>{1,2,3});
-	array3.push_back(std::vector<GLfloat>{4,5,6});
-	array3.push_back(std::vector<GLfloat>{7,8,9});
-	array3.push_back(std::vector<GLfloat>{1,2,3});
-	array3.push_back(std::vector<GLfloat>{1,2,4});
+	GLuint indexData[][1] ={{0},{1},{2},{3}};
 
-	buffer << array;
+	vertex << vertexData;
+	index << indexData;
 
-	VAO varray,varray2,varray3;
-	varray = varray3;
+	VAO varray;
 
-	obj.disconnectAttrib(program, "poyo");
-	obj.connectAttrib(program, buffer, varray3, "poyo");
-
-	program.setUniformXt("poyo", 2,3,4);
+	obj.connectAttrib(program, vertex, varray, "LVertexPos2D");
 
 	bool quit = false;
 	SDL_Event e;
@@ -86,8 +87,10 @@ int main(int argc, char* argv[])
 				quit = true;
 			}
 		}
+		CHECK_GL_ERROR;
 		glClear(GL_COLOR_BUFFER_BIT);
-		glClearColor(1.0, 1.0, 0.0, 1.0);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		obj.drawElements(varray, program, index);
 		SDL_GL_SwapWindow( window );
 	}
 	obj << End();
