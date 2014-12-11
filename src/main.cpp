@@ -8,10 +8,16 @@ int threadfunction(void* data)
 {
 	using namespace GLLib;
 
-//	obj.initialize(static_cast<SDL_Window*>(data));
-//	obj.makeCurrent(static_cast<SDL_Window*>(data));
 	return 0;
 }
+
+const std::string vshader_source = 
+#include "shader.vert"
+;
+const std::string fshader_source = 
+#include "shader.frag"
+;
+
 
 int main(int argc, char* argv[])
 {
@@ -35,11 +41,6 @@ int main(int argc, char* argv[])
 	obj << Begin(window);
 	obj << MakeCurrent(window);
 
-	if(GLEW_VERSION_4_1)
-	{
-		std::cout << "4.1 supported" << std::endl;
-	}
-
 	//Shader test
 	using VShader = Shader<VertexShader>;
 	using FShader = Shader<FragmentShader>;
@@ -48,29 +49,37 @@ int main(int argc, char* argv[])
 
 	ShaderProg<> program;
 
-	vshader << "#version 120\nattribute vec2 LVertexPos2D; void main() { gl_Position = vec4( LVertexPos2D.x, LVertexPos2D.y, 0, 1 ); }";
-	fshader << "#version 120\nvoid main() { gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ); }";
+	vshader << vshader_source;
+	fshader << fshader_source;
 
 	program << vshader << fshader << link_these();
 
 	VBO vertex;
+	VBO color;
 	IBO index;
+
 	GLfloat vertexData[][2] = 
 	{
-		{-0.5f, -0.5f},
+		{-1.0f, -1.0f},
 		{0.5f, -0.5f},
-		{0.5f, 0.5f},
-		{-0.5f, 0.5f}
+		{0.5f, 1.0f},
 	};
 
-	GLuint indexData[][1] ={{0},{1},{2},{3}};
+	GLfloat colorData[][3] =
+	{
+		{1.0f, 0.0f, 0.0f},
+		{0.0f, 1.0f, 0.0f},
+		{0.0f, 0.0f, 1.0f}
+	};
 
-	vertex << vertexData;
+	GLushort indexData[] ={0,1,2};
+
 	index << indexData;
 
 	VAO varray;
 
-	obj.connectAttrib(program, vertex, varray, "LVertexPos2D");
+	obj.connectAttrib(program, vertex << vertexData, varray, "LVertexPos2D");
+	obj.connectAttrib(program, color << colorData, varray, "Color");
 
 	bool quit = false;
 	SDL_Event e;
@@ -90,7 +99,7 @@ int main(int argc, char* argv[])
 		CHECK_GL_ERROR;
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		obj.drawElements(varray, program, index);
+		obj.drawElements<rm_LineLoop>(varray, program, index);
 		SDL_GL_SwapWindow( window );
 	}
 	obj << End();

@@ -201,17 +201,14 @@ namespace GLLib {
 			{
 				varray.bind();
 				ibo.bind();
-				//
-				varray.unbind();
 				program.bind();
-				varray.bind();
-				//
+
 				if(!ibo.isSetArray)
 				{
-					std::cerr << "IBO isn't set. cannot draw" << std::endl;
+					std::cerr << "IBO array isn't set. cannot draw" << std::endl;
 				}
 				//else
-				glDrawElements(GL_TRIANGLE_FAN, ibo.Size_Elem, ibo.ArrayEnum, NULL);
+				glDrawElements(RenderMode::RENDER_MODE, ibo.Size_Elem, ibo.ArrayEnum, NULL);
 				CHECK_GL_ERROR;
 			}
 
@@ -527,8 +524,6 @@ namespace GLLib {
 					glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
 				}
 
-
-
 		};
 
 	//vertexbuffer
@@ -645,6 +640,7 @@ namespace GLLib {
 						static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
 						static_assert( Dim <= 4, "Invalid dimension" );
 						static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
+						static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),"IBO array type must be GLushort or GLuint or GLubyte");
 						bind();
 						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
 						CHECK_GL_ERROR;
@@ -660,6 +656,7 @@ namespace GLLib {
 						static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
 						static_assert( Dim <= 4, "Invalid dimension" );
 						static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
+						static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),"IBO array type must be GLushort or GLuint or GLubyte");
 						bind();
 						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array, UsageType::BUFFER_USAGE);
 						CHECK_GL_ERROR;
@@ -668,11 +665,27 @@ namespace GLLib {
 						return *this;
 					}
 
+				template<typename T, std::size_t Size_Elem>
+					VertexBuffer& operator<<(const T (&array)[Size_Elem])
+					//Set Array for raw array
+					{
+						static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+						static_assert( (Size_Elem != 0), "Zero Elem" );
+						static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),"IBO array type must be GLushort or GLuint or GLubyte");
+						bind();
+						glBufferData(TargetType::BUFFER_TARGET, Size_Elem*sizeof(T), array, UsageType::BUFFER_USAGE);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("allocate "<< Size_Elem*sizeof(T) <<" B success! buffer id is " << buffer_id);
+						setSizeElem_Dim_Type<T>(Size_Elem, 1);
+						return *this;
+					}
+
 				template<typename T>
 					VertexBuffer& operator<<(const std::vector<std::vector<T>> &array)
 					// Set Array for std::vector
 					{
 						static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+						static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),"IBO array type must be GLushort or GLuint or GLubyte");
 						std::size_t Size_Elem = 0;
 						std::size_t Dim = 0;
 						bool first = true;

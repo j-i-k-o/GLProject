@@ -549,6 +549,11 @@ namespace GLLib
 	{
 		constexpr static GLenum RENDER_MODE = GL_TRIANGLES; 
 	};
+
+	struct rm_LineLoop
+	{
+		constexpr static GLenum RENDER_MODE = GL_LINE_LOOP;
+	};
 	
 
 }
