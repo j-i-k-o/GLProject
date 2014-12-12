@@ -1,12 +1,11 @@
-#include "../include/MyGL.h"
-#include "../include/MyGL.h"
+#include "../include/gl_base.h"
 #include <vector>
 
-GLLib::GLObject obj;
+jikoLib::GLLib::GLObject obj;
 
 int threadfunction(void* data)
 {
-	using namespace GLLib;
+	using namespace jikoLib::GLLib;
 
 	return 0;
 }
@@ -21,14 +20,14 @@ const std::string fshader_source =
 
 int main(int argc, char* argv[])
 {
-	using namespace GLLib;
+	using namespace jikoLib::GLLib;
 
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
 		std::cerr << "Cannot Initialize SDL!: " << SDL_GetError() << std::endl;
 		return -1;
 	}
-	setAttribute<Attr_GLVersion<3,1>>();
+	setAttribute<Attr_GLVersion<2,1>>();
 
 	SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if(window == NULL)
@@ -37,17 +36,17 @@ int main(int argc, char* argv[])
 	}
 	setAttribute<Attr_GLSize<5,5,5,32,1>>();
 //	SDL_Thread* threadID = SDL_CreateThread(threadfunction, "MyThread", (void*)(window));
+//
+//
+//
 
 	obj << Begin(window);
 	obj << MakeCurrent(window);
 
-	//Shader test
-	using VShader = Shader<VertexShader>;
-	using FShader = Shader<FragmentShader>;
 	VShader vshader;
 	FShader fshader;
 
-	ShaderProg<> program;
+	ShaderProgram program;
 
 	vshader << vshader_source;
 	fshader << fshader_source;
@@ -85,6 +84,8 @@ int main(int argc, char* argv[])
 	SDL_Event e;
 //	SDL_WaitThread(threadID, NULL);
 
+	varray.bindIBO(index);
+
 	while( !quit )
 	{
 		//Handle events on queue
@@ -99,7 +100,7 @@ int main(int argc, char* argv[])
 		CHECK_GL_ERROR;
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		obj.drawElements<rm_LineLoop>(varray, program, index);
+		obj.draw<rm_Triangles>(varray, program, vertex);
 		SDL_GL_SwapWindow( window );
 	}
 	obj << End();
