@@ -18,19 +18,6 @@
 namespace jikoLib{
 	namespace GLLib {
 
-		//setAttribute
-		template<typename Attr_First>
-			inline void setAttribute()
-			{
-				Attr_First::SetAttr();
-			}
-		template<typename Attr_First, typename Attr_Second, typename... Rests>
-			inline void setAttribute()
-			{
-				setAttribute<Attr_First>();
-				setAttribute<Attr_Second,Rests...>();
-			}
-
 		//getID
 		template<typename T>
 			inline GLuint getID(const T &obj)
@@ -50,162 +37,17 @@ namespace jikoLib{
 			class VertexArray;
 
 
-		class GLObject
-		{
-			private:
-				//member variable
-				SDL_GLContext _context;
-				bool _is_initialized;
 
-			public:
-				GLObject() :_is_initialized(false)
-			{
-			}
-				bool initialize(SDL_Window* _window)
-				{
-					bool success = true;
-					//create context
-					_context = SDL_GL_CreateContext(_window);
-					if(_context == NULL)
-					{
-						std::cerr << "Cannot create OpenGL context: " << SDL_GetError() << std::endl;
-						success = false;
-					}
-					else
-					{
-						//initialize glew
-						glewExperimental = GL_TRUE;
-						GLenum glewError = glewInit();
-						if(glewError != GLEW_OK)
-						{
-							std::cerr << "cannot initialize GLEW!: " << glewGetErrorString(glewError) << std::endl;
-							success = false;
-						}
-						else
-						{
-							//use vsync
-							if(SDL_GL_SetSwapInterval(1) < 0)
-							{
-								std::cerr << "warning: unable to set vsync!: " << SDL_GetError() << std::endl;
-							}
-							//OpenGL initialize complete
-							DEBUG_OUT("--- OpenGL initialize complete ---");
-							DEBUG_OUT("OpenGL Vendor: " << glGetString(GL_VENDOR));
-							DEBUG_OUT("OpenGL Renderer: " << glGetString(GL_RENDERER));
-							DEBUG_OUT("OpenGL Version: " << glGetString(GL_VERSION));
-							DEBUG_OUT(" ");
-							_is_initialized = true;
-						}
-					}
-					return success;
-				}
+		/*
+		 *
+		 *    gl_base
+		 *
+		 *
+		 *
+		 *
+		 */
 
-				void finalize()
-				{
-					if(_is_initialized)
-					{
-						SDL_GL_DeleteContext(_context);
-						DEBUG_OUT("SDL_GL_Context is successfully closed.");
-						_is_initialized = false;
-					}
-				}
-
-				void makeCurrent(SDL_Window* window)
-				{
-					if(SDL_GL_MakeCurrent(window, _context) < 0)
-					{
-						std::cerr << "MakeCurrent failed!: " << SDL_GetError() << std::endl;
-					}
-					else
-					{
-						DEBUG_OUT("SDL_GL_MakeCurrent");
-					}
-				}
-
-				GLObject& operator<<(Begin&& obj)
-					//initializer
-				{
-					initialize(obj.m_window);
-					return *this;
-				}
-
-				GLObject& operator<<(MakeCurrent&& obj)
-					//make current
-				{
-					makeCurrent(obj.m_window);
-					return *this;
-				}
-
-				GLObject& operator<<(End&&)
-					//finalizer
-				{
-					finalize();
-					return *this;
-				}
-
-				template<typename UsageType, typename Allocator_sh, typename Allocator_vb, typename Allocator_va>
-					void connectAttrib(const ShaderProg<Allocator_sh> &prog, const VertexBuffer<ArrayBuffer, UsageType, Allocator_vb> &buffer, const VertexArray<Allocator_va> &varray, const std::string &name)
-					{
-						if(!buffer.isSetArray)
-						{
-							std::cerr << "Array is not set! --did nothing" << std::endl;
-							return;
-						}
-						if(getSizeof(buffer.ArrayEnum) == 0)
-						{
-							std::cerr << "buffer ArrayEnum is invalid! --did nothing" << std::endl;
-							return;
-						}
-						varray.bind();
-						buffer.bind();
-						GLint attribloc = glGetAttribLocation(prog.getID(), name.c_str());
-						CHECK_GL_ERROR;
-						glVertexAttribPointer(attribloc, buffer.Dim, buffer.ArrayEnum, GL_FALSE, buffer.Dim*getSizeof(buffer.ArrayEnum), 0);
-						CHECK_GL_ERROR;
-						glEnableVertexAttribArray(attribloc);
-						CHECK_GL_ERROR;
-						varray.unbind();
-					}
-
-				template<typename Allocator_sh>
-					void disconnectAttrib(const ShaderProg<Allocator_sh> &prog, const std::string &name)
-					{
-						glDisableVertexAttribArray(glGetAttribLocation(prog.getID(), name.c_str()));
-						CHECK_GL_ERROR;
-					}
-
-				//draw
-
-				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
-					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo)
-					{
-						varray.bind();
-						ibo.bind();
-						program.bind();
-
-						if(!ibo.isSetArray)
-						{
-							std::cerr << "IBO array isn't set. cannot draw" << std::endl;
-						}
-						//else
-						glDrawElements(RenderMode::RENDER_MODE, ibo.Size_Elem, ibo.ArrayEnum, NULL);
-						CHECK_GL_ERROR;
-					}
-
-				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
-					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ArrayBuffer, vbUsage, vbAlloc> &vbo)
-					{
-						varray.bind();
-						program.bind();
-						if(!vbo.isSetArray)
-						{
-							std::cerr << "VBO array isn't set. cannot draw" << std::endl;
-						}
-						//else
-						glDrawArrays(RenderMode::RENDER_MODE, 0, vbo.Size_Elem);
-						CHECK_GL_ERROR;
-					}
-		};
+		
 
 		//shader
 		template<typename Shader_type, typename Allocator = GLAllocator<Alloc_Shader>>
@@ -495,6 +337,7 @@ namespace jikoLib{
 							CHECK_GL_ERROR;
 						}
 
+					/*
 					template <std::size_t Size_Elem, std::size_t Dim, typename T>
 						void setUniformXtv(const std::string &str, const std::array<std::array<T,Dim>,Size_Elem>& array)
 						{
@@ -514,6 +357,7 @@ namespace jikoLib{
 							glUniformXtv<Dim, T>::func(loc, Size_Elem, array.data());
 							CHECK_GL_ERROR;
 						}
+						*/
 
 					//TODO: setUniformMatrixXtv
 
@@ -534,6 +378,8 @@ namespace jikoLib{
 					}
 
 			};
+
+		class GLObject;
 
 		//vertexbuffer
 		template<typename TargetType, typename UsageType, typename Allocator = GLAllocator<Alloc_VertexBuffer>>
@@ -559,19 +405,22 @@ namespace jikoLib{
 
 				public:
 
-					//friend function
-					template<typename UsageType_v, typename Allocator_sh, typename Allocator_vb, typename Allocator_va>
-						friend void 
-						GLObject::connectAttrib(const ShaderProg<Allocator_sh> &prog, const VertexBuffer<ArrayBuffer, UsageType_v, Allocator_vb> &buffer, const VertexArray<Allocator_va> &varray, const std::string &name);
-
-					template<typename RenderMode, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
-						friend void
-						GLObject::draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo);
-
-					template<typename RenderMode, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
-						friend void 
-						GLObject::draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ArrayBuffer, vbUsage, vbAlloc> &vbo);
-
+					inline bool getisSetArray() const
+					{
+						return isSetArray;
+					}
+					inline GLenum getArrayEnum() const
+					{
+						return ArrayEnum;
+					}
+					inline std::size_t getSizeElem() const
+					{
+						return Size_Elem;
+					}
+					inline std::size_t getDim() const
+					{
+						return Dim;
+					}
 
 					inline void bind() const
 					{
@@ -583,11 +432,6 @@ namespace jikoLib{
 					{
 						glBindBuffer(TargetType::BUFFER_TARGET, 0);
 						CHECK_GL_ERROR;
-					}
-
-					inline bool getisSetArray() const
-					{
-						return isSetArray;
 					}
 
 					VertexBuffer()
@@ -668,6 +512,7 @@ namespace jikoLib{
 
 
 					/*
+					 * invalid code
 					 *
 					template<typename T,std::size_t Size_Elem, std::size_t Dim>
 						VertexBuffer& operator<<(const std::array<std::array<T, Dim>, Size_Elem> &array)
@@ -750,6 +595,7 @@ namespace jikoLib{
 
 					/*
 					 *
+					 * invalid code
 					 *
 					 template<typename T>
 						VertexBuffer& operator<<(const std::vector<std::vector<T>> &array)
@@ -1138,6 +984,5 @@ namespace jikoLib{
 		using VBO = VertexBuffer<ArrayBuffer, StaticDraw>;
 		using IBO = VertexBuffer<ElementArrayBuffer, StaticDraw>;
 		using VAO = VertexArray<>;
-
 	}
 }

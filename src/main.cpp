@@ -1,5 +1,7 @@
-#include "../include/gl_base.h"
+#include "../include/gl_all.h"
 #include <vector>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 
 jikoLib::GLLib::GLObject obj;
 
@@ -22,26 +24,42 @@ int main(int argc, char* argv[])
 {
 	using namespace jikoLib::GLLib;
 
+
 	if(SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
 		std::cerr << "Cannot Initialize SDL!: " << SDL_GetError() << std::endl;
 		return -1;
 	}
-	setAttribute<Attr_GLVersion<2,1>>();
+
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); 
+
 
 	SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if(window == NULL)
 	{
 		std::cerr << "Window could not be created!: " << SDL_GetError() << std::endl;
 	}
-	setAttribute<Attr_GLSize<5,5,5,32,1>>();
 //	SDL_Thread* threadID = SDL_CreateThread(threadfunction, "MyThread", (void*)(window));
 //
 //
 //
+//	setAttribute<Attr_GLVersion<2,1>>();
 
+	SDL_GLContext context;
+
+	/*
 	obj << Begin(window);
 	obj << MakeCurrent(window);
+	*/
+	obj.initialize([&](){context = SDL_GL_CreateContext(window);});
+
+	SDL_GL_SetSwapInterval(1);
+
+	obj.makeCurrent([&](){SDL_GL_MakeCurrent(window, context);});
 
 	VShader vshader;
 	FShader fshader;
@@ -116,7 +134,9 @@ int main(int argc, char* argv[])
 		obj.draw<rm_Triangles>(varray, program, vertex);
 		SDL_GL_SwapWindow( window );
 	}
-	obj << End();
+//	obj << End();
+
+	obj.finalize([&](){SDL_GL_DeleteContext(context);});
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	return 0;
