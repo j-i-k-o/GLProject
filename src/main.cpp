@@ -54,6 +54,8 @@ int main(int argc, char* argv[])
 	program << vshader << fshader << link_these();
 
 	VBO vertex;
+	VBO vertex2;
+	VBO vertex3;
 	VBO color;
 	IBO index;
 
@@ -64,27 +66,38 @@ int main(int argc, char* argv[])
 		{0.5f, 1.0f},
 	};
 
+	GLfloat vertexData2[][2] = 
+	{
+		{-1.0f, 1.0f},
+		{-1.0f, 0.5f},
+		{-0.5f, 1.0f},
+	};
+
 	GLfloat colorData[][3] =
 	{
 		{1.0f, 0.0f, 0.0f},
-		{0.0f, 1.0f, 0.0f},
-		{0.0f, 0.0f, 1.0f}
+		{0.0f, 0.0f, 1.0f},
+		{0.0f, 1.0f, 0.0f}
 	};
 
 	GLushort indexData[] ={0,1,2};
 
+	vertex << vertexData;
+	vertex2 << vertexData2;
 	index << indexData;
+
+	vertex3 = vertex + vertex2;
+	color << colorData;
+	color = color + color;
 
 	VAO varray;
 
-	obj.connectAttrib(program, vertex << vertexData, varray, "LVertexPos2D");
-	obj.connectAttrib(program, color << colorData, varray, "Color");
+	obj.connectAttrib(program, vertex3, varray, "LVertexPos2D");
+	obj.connectAttrib(program, color, varray, "Color");
 
 	bool quit = false;
 	SDL_Event e;
 //	SDL_WaitThread(threadID, NULL);
-
-	varray.bindIBO(index);
 
 	while( !quit )
 	{
@@ -100,7 +113,7 @@ int main(int argc, char* argv[])
 		CHECK_GL_ERROR;
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		obj.draw<rm_Triangles>(varray, program, vertex);
+		obj.draw<rm_Triangles>(varray, program, vertex3);
 		SDL_GL_SwapWindow( window );
 	}
 	obj << End();

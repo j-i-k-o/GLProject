@@ -164,15 +164,15 @@ namespace jikoLib
 			struct getType
 			{
 				using type =
-					type_if<TypeEnum == GL_BYTE, GLbyte,
-					type_if<TypeEnum == GL_UNSIGNED_BYTE, GLubyte,
-					type_if<TypeEnum == GL_SHORT, GLshort,
-					type_if<TypeEnum == GL_UNSIGNED_SHORT, GLushort,
-					type_if<TypeEnum == GL_INT, GLint,
-					type_if<TypeEnum == GL_UNSIGNED_INT, GLuint,
-					type_if<TypeEnum == GL_FLOAT, GLfloat,
-					type_if<TypeEnum == GL_DOUBLE, GLdouble,std::nullptr_t>>>>>>>>;
-				static_assert(std::is_same<type,std::nullptr_t>::value, "Invalid Enum");
+					typename type_if<TypeEnum == GL_BYTE, GLbyte,
+					typename type_if<TypeEnum == GL_UNSIGNED_BYTE, GLubyte,
+					typename type_if<TypeEnum == GL_SHORT, GLshort,
+					typename type_if<TypeEnum == GL_UNSIGNED_SHORT, GLushort,
+					typename type_if<TypeEnum == GL_INT, GLint,
+					typename type_if<TypeEnum == GL_UNSIGNED_INT, GLuint,
+					typename type_if<TypeEnum == GL_FLOAT, GLfloat,
+					typename type_if<TypeEnum == GL_DOUBLE, GLdouble,std::nullptr_t>::type>::type>::type>::type>::type>::type>::type>::type;
+				static_assert(!std::is_same<type,std::nullptr_t>::value, "Invalid Enum");
 			};
 
 		constexpr std::size_t getSizeof(GLenum TypeEnum)
@@ -187,6 +187,7 @@ namespace jikoLib
 				(TypeEnum == GL_FLOAT) ? sizeof(GLfloat) :
 				(TypeEnum == GL_DOUBLE) ? sizeof(GLdouble) : 0;
 		}
+
 
 
 		/**

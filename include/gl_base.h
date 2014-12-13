@@ -145,7 +145,6 @@ namespace jikoLib{
 
 				template<typename UsageType, typename Allocator_sh, typename Allocator_vb, typename Allocator_va>
 					void connectAttrib(const ShaderProg<Allocator_sh> &prog, const VertexBuffer<ArrayBuffer, UsageType, Allocator_vb> &buffer, const VertexArray<Allocator_va> &varray, const std::string &name)
-					// TODO: make parser for searching name.c_str() string in prog source
 					{
 						if(!buffer.isSetArray)
 						{
@@ -234,6 +233,8 @@ namespace jikoLib{
 					Shader(const Shader<Shader_type, Allocator> &obj)
 					{
 						this->shader_id = obj.shader_id;
+						this->is_compiled = obj.is_compiled;
+
 						a.copy(obj.a);
 						DEBUG_OUT("shader copied! shader_id is " << shader_id);
 						CHECK_GL_ERROR;
@@ -242,6 +243,8 @@ namespace jikoLib{
 					Shader(Shader<Shader_type, Allocator>&& obj)
 					{
 						this->shader_id = obj.shader_id;
+						this->is_compiled = obj.is_compiled;
+
 						a.move(std::move(obj.a));
 						DEBUG_OUT("shader moved! shader_id is " << shader_id);
 						CHECK_GL_ERROR;
@@ -250,7 +253,9 @@ namespace jikoLib{
 					Shader& operator=(const Shader<Shader_type, Allocator> &obj)
 					{
 						a.destruct(shader_id);
-						shader_id = obj.shader_id;
+						this->shader_id = obj.shader_id;
+						this->is_compiled = obj.is_compiled;
+
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("shader copied! shader_id is " << shader_id);
@@ -260,7 +265,9 @@ namespace jikoLib{
 					Shader& operator=(Shader<Shader_type, Allocator>&& obj)
 					{
 						a.destruct(shader_id);
-						shader_id = obj.shader_id;
+						this->shader_id = obj.shader_id;
+						this->is_compiled = obj.is_compiled;
+
 						a.move(std::move(obj.a));
 						CHECK_GL_ERROR;
 						DEBUG_OUT("shader moved! shader_id is " << shader_id);
@@ -319,8 +326,8 @@ namespace jikoLib{
 			{
 				private:
 					GLuint shaderprog_id;
-					Allocator a;
 					bool isLinked = false;
+					Allocator a;
 				public:
 					inline void bind() const
 					{
@@ -350,7 +357,9 @@ namespace jikoLib{
 
 					ShaderProg(const ShaderProg<Allocator> &obj)
 					{
-						shaderprog_id = obj.shaderprog_id;
+						this->shaderprog_id = obj.shaderprog_id;
+						this->isLinked = obj.isLinked;
+						
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("shaderprog copied! shaderprog id is " << shaderprog_id);
@@ -358,7 +367,9 @@ namespace jikoLib{
 
 					ShaderProg(ShaderProg<Allocator>&& obj)
 					{
-						shaderprog_id = obj.shaderprog_id;
+						this->shaderprog_id = obj.shaderprog_id;
+						this->isLinked = obj.isLinked;
+
 						a.move(std::move(obj.a));
 						CHECK_GL_ERROR;
 						DEBUG_OUT("shaderprog moved! shaderprog id is " << shaderprog_id);
@@ -367,7 +378,9 @@ namespace jikoLib{
 					ShaderProg& operator=(const ShaderProg<Allocator> &obj)
 					{
 						a.destruct(shaderprog_id);
-						shaderprog_id = obj.shaderprog_id;
+						this->shaderprog_id = obj.shaderprog_id;
+						this->isLinked = obj.isLinked;
+
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("shaderprog copied! shaderprog id is " << shaderprog_id);
@@ -376,7 +389,9 @@ namespace jikoLib{
 					ShaderProg& operator=(ShaderProg<Allocator>&& obj)
 					{
 						a.destruct(shaderprog_id);
-						shaderprog_id = obj.shaderprog_id;
+						this->shaderprog_id = obj.shaderprog_id;
+						this->isLinked = obj.isLinked;
+
 						a.move(std::move(obj.a));
 						CHECK_GL_ERROR;
 						DEBUG_OUT("shaderprog moved! shaderprog id is " << shaderprog_id);
@@ -526,12 +541,12 @@ namespace jikoLib{
 			{
 				private:
 					GLuint buffer_id;
-					Allocator a;
-
 					bool isSetArray = false; 
 					GLenum ArrayEnum;
 					std::size_t Size_Elem;
 					std::size_t Dim;
+
+					Allocator a;
 
 					template<typename Type> 
 						inline void setSizeElem_Dim_Type(std::size_t Size_Elem, std::size_t Dim)
@@ -592,7 +607,12 @@ namespace jikoLib{
 
 					VertexBuffer(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 					{
-						buffer_id = obj.buffer_id;
+						this->buffer_id = obj.buffer_id;
+						this->isSetArray = obj.isSetArray;
+						this->ArrayEnum = obj.ArrayEnum;
+						this->Size_Elem = obj.Size_Elem;
+						this->Dim = obj.Dim;
+
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("vbuffer copied! id is " << buffer_id);
@@ -600,7 +620,12 @@ namespace jikoLib{
 
 					VertexBuffer(VertexBuffer<TargetType, UsageType, Allocator>&& obj)
 					{
-						buffer_id = obj.buffer_id;
+						this->buffer_id = obj.buffer_id;
+						this->isSetArray = obj.isSetArray;
+						this->ArrayEnum = obj.ArrayEnum;
+						this->Size_Elem = obj.Size_Elem;
+						this->Dim = obj.Dim;
+
 						a.move(std::move(obj.a));
 						CHECK_GL_ERROR;
 						DEBUG_OUT("vbuffer moved! id is " << buffer_id);
@@ -609,7 +634,12 @@ namespace jikoLib{
 					VertexBuffer& operator=(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 					{
 						a.destruct(buffer_id);
-						buffer_id = obj.buffer_id;
+						this->buffer_id = obj.buffer_id;
+						this->isSetArray = obj.isSetArray;
+						this->ArrayEnum = obj.ArrayEnum;
+						this->Size_Elem = obj.Size_Elem;
+						this->Dim = obj.Dim;
+						
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("vbuffer copied! id is " << buffer_id);
@@ -619,7 +649,12 @@ namespace jikoLib{
 					VertexBuffer& operator=(VertexBuffer<TargetType, UsageType, Allocator>&& obj)
 					{
 						a.destruct(buffer_id);
-						buffer_id = obj.buffer_id;
+						this->buffer_id = obj.buffer_id;
+						this->isSetArray = obj.isSetArray;
+						this->ArrayEnum = obj.ArrayEnum;
+						this->Size_Elem = obj.Size_Elem;
+						this->Dim = obj.Dim;
+
 						a.move(std::move(obj.a));
 						CHECK_GL_ERROR;
 						DEBUG_OUT("vbuffer moved! id is " << buffer_id);
@@ -631,6 +666,9 @@ namespace jikoLib{
 						return buffer_id;
 					}
 
+
+					/*
+					 *
 					template<typename T,std::size_t Size_Elem, std::size_t Dim>
 						VertexBuffer& operator<<(const std::array<std::array<T, Dim>, Size_Elem> &array)
 						// Set Array for std::array 
@@ -648,6 +686,8 @@ namespace jikoLib{
 							return *this;
 						}
 
+						*/
+
 					template<typename T,std::size_t Size_Elem, std::size_t Dim>
 						VertexBuffer& operator<<(const T (&array)[Size_Elem][Dim])
 						// Set Array for raw array
@@ -663,6 +703,19 @@ namespace jikoLib{
 							DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
 							setSizeElem_Dim_Type<T>(Size_Elem, Dim);
 							return *this;
+						}
+
+					template<typename T>
+						void copyData(const T* array, std::size_t Size_Elem, std::size_t Dim)
+						{
+							static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+							static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
+									"IBO array type must be GLushort or GLuint or GLubyte");
+							bind();
+							glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array, UsageType::BUFFER_USAGE);
+							CHECK_GL_ERROR;
+							DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
+							setSizeElem_Dim_Type<T>(Size_Elem, Dim);
 						}
 
 					template<typename T, std::size_t Size_Elem>
@@ -682,6 +735,23 @@ namespace jikoLib{
 						}
 
 					template<typename T>
+						void copyData(const T* array, std::size_t Size_Elem)
+						{
+							static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+							static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
+									"IBO array type must be GLushort or GLuint or GLubyte");
+							bind();
+							glBufferData(TargetType::BUFFER_TARGET, Size_Elem*sizeof(T), array, UsageType::BUFFER_USAGE);
+							CHECK_GL_ERROR;
+							DEBUG_OUT("allocate "<< Size_Elem*sizeof(T) <<" B success! buffer id is " << buffer_id);
+							setSizeElem_Dim_Type<T>(Size_Elem, 1);
+						}
+
+
+					/*
+					 *
+					 *
+					 template<typename T>
 						VertexBuffer& operator<<(const std::vector<std::vector<T>> &array)
 						// Set Array for std::vector
 						{
@@ -724,21 +794,250 @@ namespace jikoLib{
 							return *this;
 						}
 
-						VertexBuffer operator+(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
+						*/
+
+					VertexBuffer operator+(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 						//merge buffer data
+					{
+						if(!(this->isSetArray && obj.isSetArray))
 						{
-							if(!(this->isSetArray && obj.isSetArray))
-							{
-								std::cerr << "Array is not set. --did nothing" << std::endl;
-								return *this;
-							}
-							if(this->ArrayEnum != obj.ArrayEnum)
-							{
-								std::cerr << "two types is not same --did nothing" << std::endl;
-							}
-
-
+							std::cerr << "Array is not set. --did nothing" << std::endl;
+							return *this;
 						}
+						if(this->ArrayEnum != obj.ArrayEnum)
+						{
+							std::cerr << "two types is not same --did nothing" << std::endl;
+							return *this;
+						}
+						if(this->Dim != obj.Dim)
+						{
+							std::cerr << "two arrays' dimension is no same --did nothing" << std::endl;
+							return *this;
+						}
+
+						//TODO: this code looks ugly.
+
+						if(this->ArrayEnum == GL_BYTE)
+						{
+							std::vector<GLbyte> t_array(this->Dim*this->Size_Elem);
+							std::vector<GLbyte> o_array(obj.Dim*obj.Size_Elem);
+							std::vector<GLbyte> array(this->Dim*this->Size_Elem+obj.Dim*obj.Size_Elem);
+
+							this->bind();
+							GLbyte *temp_t_array = static_cast<GLbyte*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							obj.bind();
+							GLbyte *temp_o_array = static_cast<GLbyte*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							array.insert(array.begin(), t_array.begin(), t_array.end());
+							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
+							
+							VertexBuffer<TargetType, UsageType, Allocator> buffer;
+							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+							return buffer;
+						}
+						if(this->ArrayEnum == GL_UNSIGNED_BYTE)
+						{
+							std::vector<GLubyte> t_array(this->Dim*this->Size_Elem);
+							std::vector<GLubyte> o_array(obj.Dim*obj.Size_Elem);
+							std::vector<GLubyte> array(this->Dim*this->Size_Elem+obj.Dim*obj.Size_Elem);
+
+							this->bind();
+							GLubyte *temp_t_array = static_cast<GLubyte*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							obj.bind();
+							GLubyte *temp_o_array = static_cast<GLubyte*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							array.insert(array.begin(), t_array.begin(), t_array.end());
+							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
+
+							VertexBuffer<TargetType, UsageType, Allocator> buffer;
+							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+							return buffer;
+						}
+						if(this->ArrayEnum == GL_SHORT)
+						{
+							std::vector<GLshort> t_array(this->Dim*this->Size_Elem);
+							std::vector<GLshort> o_array(obj.Dim*obj.Size_Elem);
+							std::vector<GLshort> array(this->Dim*this->Size_Elem+obj.Dim*obj.Size_Elem);
+
+							this->bind();
+							GLshort *temp_t_array = static_cast<GLshort*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							obj.bind();
+							GLshort *temp_o_array = static_cast<GLshort*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							array.insert(array.begin(), t_array.begin(), t_array.end());
+							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
+
+							VertexBuffer<TargetType, UsageType, Allocator> buffer;
+							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+							return buffer;
+						}
+						if(this->ArrayEnum == GL_UNSIGNED_SHORT)
+						{
+							std::vector<GLushort> t_array(this->Dim*this->Size_Elem);
+							std::vector<GLushort> o_array(obj.Dim*obj.Size_Elem);
+							std::vector<GLushort> array(this->Dim*this->Size_Elem+obj.Dim*obj.Size_Elem);
+
+							this->bind();
+							GLushort *temp_t_array = static_cast<GLushort*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							obj.bind();
+							GLushort *temp_o_array = static_cast<GLushort*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							array.insert(array.begin(), t_array.begin(), t_array.end());
+							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
+
+							VertexBuffer<TargetType, UsageType, Allocator> buffer;
+							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+							return buffer;
+						}
+						if(this->ArrayEnum == GL_INT)
+						{
+							std::vector<GLint> t_array(this->Dim*this->Size_Elem);
+							std::vector<GLint> o_array(obj.Dim*obj.Size_Elem);
+							std::vector<GLint> array(this->Dim*this->Size_Elem+obj.Dim*obj.Size_Elem);
+
+							this->bind();
+							GLint *temp_t_array = static_cast<GLint*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							obj.bind();
+							GLint *temp_o_array = static_cast<GLint*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							array.insert(array.begin(), t_array.begin(), t_array.end());
+							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
+
+							VertexBuffer<TargetType, UsageType, Allocator> buffer;
+							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+							return buffer;
+						}
+						if(this->ArrayEnum == GL_UNSIGNED_INT)
+						{
+							std::vector<GLuint> t_array(this->Dim*this->Size_Elem);
+							std::vector<GLuint> o_array(obj.Dim*obj.Size_Elem);
+							std::vector<GLuint> array(this->Dim*this->Size_Elem+obj.Dim*obj.Size_Elem);
+
+							this->bind();
+							GLuint *temp_t_array = static_cast<GLuint*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							obj.bind();
+							GLuint *temp_o_array = static_cast<GLuint*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							array.insert(array.begin(), t_array.begin(), t_array.end());
+							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
+
+							VertexBuffer<TargetType, UsageType, Allocator> buffer;
+							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+							return buffer;
+						}
+						if(this->ArrayEnum == GL_FLOAT)
+						{
+							std::vector<GLfloat> t_array(this->Dim*this->Size_Elem);
+							std::vector<GLfloat> o_array(obj.Dim*obj.Size_Elem);
+							std::vector<GLfloat> array(this->Dim*this->Size_Elem+obj.Dim*obj.Size_Elem);
+
+							this->bind();
+							GLfloat *temp_t_array = static_cast<GLfloat*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							obj.bind();
+							GLfloat *temp_o_array = static_cast<GLfloat*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							array.insert(array.begin(), t_array.begin(), t_array.end());
+							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
+
+							VertexBuffer<TargetType, UsageType, Allocator> buffer;
+							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+							return buffer;
+						}
+						if(this->ArrayEnum == GL_DOUBLE)
+						{
+							std::vector<GLdouble> t_array(this->Dim*this->Size_Elem);
+							std::vector<GLdouble> o_array(obj.Dim*obj.Size_Elem);
+							std::vector<GLdouble> array(this->Dim*this->Size_Elem+obj.Dim*obj.Size_Elem);
+
+							this->bind();
+							GLdouble *temp_t_array = static_cast<GLdouble*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							obj.bind();
+							GLdouble *temp_o_array = static_cast<GLdouble*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
+							CHECK_GL_ERROR;
+							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
+							glUnmapBuffer(TargetType::BUFFER_TARGET);
+							CHECK_GL_ERROR;
+
+							array.insert(array.begin(), t_array.begin(), t_array.end());
+							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
+
+							VertexBuffer<TargetType, UsageType, Allocator> buffer;
+							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+							return buffer;
+						}
+
+						std::cerr << "invalid enum --did nothing" << std::endl;
+						return *this;
+
+					}
 			};
 
 		//vertexarray
@@ -748,7 +1047,6 @@ namespace jikoLib{
 				private:
 					GLuint varray_id;
 					Allocator a;
-
 
 				public:
 
@@ -789,7 +1087,8 @@ namespace jikoLib{
 
 					VertexArray(const VertexArray<Allocator> &obj)
 					{
-						varray_id = obj.varray_id;
+						this->varray_id = obj.varray_id;
+
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("varray copied! id is " << varray_id);
@@ -797,7 +1096,8 @@ namespace jikoLib{
 
 					VertexArray(VertexArray<Allocator>&& obj)
 					{
-						varray_id = obj.varray_id;
+						this->varray_id = obj.varray_id;
+
 						a.move(std::move(obj.a));
 						CHECK_GL_ERROR;
 						DEBUG_OUT("varray moved! id is " << varray_id);
@@ -806,7 +1106,8 @@ namespace jikoLib{
 					VertexArray& operator=(const VertexArray<Allocator> &obj)
 					{
 						a.destruct(varray_id);
-						varray_id = obj.varray_id;
+						this->varray_id = obj.varray_id;
+
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("varray copied! id is " << varray_id);
@@ -816,7 +1117,8 @@ namespace jikoLib{
 					VertexArray& operator=(VertexArray<Allocator>&& obj)
 					{
 						a.destruct(varray_id);
-						varray_id = obj.varray_id;
+						this->varray_id = obj.varray_id;
+
 						a.move(std::move(obj.a));
 						CHECK_GL_ERROR;
 						DEBUG_OUT("varray moved! id is " << varray_id);
