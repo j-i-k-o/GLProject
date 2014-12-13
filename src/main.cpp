@@ -55,7 +55,6 @@ int main(int argc, char* argv[])
 
 	VBO vertex;
 	VBO vertex2;
-	VBO vertex3;
 	VBO color;
 	IBO index;
 
@@ -86,13 +85,14 @@ int main(int argc, char* argv[])
 	vertex2 << vertexData2;
 	index << indexData;
 
-	vertex3 = vertex + vertex2;
+	vertex = vertex + vertex2;
+
 	color << colorData;
 	color = color + color;
 
 	VAO varray;
 
-	obj.connectAttrib(program, vertex3, varray, "LVertexPos2D");
+	obj.connectAttrib(program, vertex, varray, "LVertexPos2D");
 	obj.connectAttrib(program, color, varray, "Color");
 
 	bool quit = false;
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 		CHECK_GL_ERROR;
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		obj.draw<rm_Triangles>(varray, program, vertex3);
+		obj.draw<rm_Triangles>(varray, program, vertex);
 		SDL_GL_SwapWindow( window );
 	}
 	obj << End();
