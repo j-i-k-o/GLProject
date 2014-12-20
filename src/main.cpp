@@ -1,6 +1,7 @@
 #include "../include/gl_all.h"
 #include <vector>
 #include <SDL2/SDL.h>
+#include <IL/ilu.h>
 #include <SDL2/SDL_opengl.h>
 
 jikoLib::GLLib::GLObject obj;
@@ -43,6 +44,7 @@ int main(int argc, char* argv[])
 	{
 		std::cerr << "Window could not be created!: " << SDL_GetError() << std::endl;
 	}
+
 //	SDL_Thread* threadID = SDL_CreateThread(threadfunction, "MyThread", (void*)(window));
 //
 //
@@ -55,11 +57,12 @@ int main(int argc, char* argv[])
 	obj << Begin(window);
 	obj << MakeCurrent(window);
 	*/
-	obj.initialize([&](){context = SDL_GL_CreateContext(window);});
+	context = SDL_GL_CreateContext(window);
+	obj << Begin();
 
 	SDL_GL_SetSwapInterval(1);
 
-	obj.makeCurrent([&](){SDL_GL_MakeCurrent(window, context);});
+	SDL_GL_MakeCurrent(window, context);
 
 	VShader vshader;
 	FShader fshader;
@@ -70,48 +73,48 @@ int main(int argc, char* argv[])
 	fshader << fshader_source;
 
 	program << vshader << fshader << link_these();
+	
+	GLfloat vert[][2] = 
+	{
+		{0.5, 0.5},
+		{-0.5, 0.5},
+		{-0.5, -0.5},
+		{0.5, -0.5}
+	};
+
+	GLfloat texc[][2] = 
+	{
+		{1.0, 1.0},
+		{0.0, 1.0},
+		{0.0, 0.0},
+		{1.0, 0.0}
+	};
+
+	GLushort ind[] = {0,2,3};
 
 	VBO vertex;
-	VBO vertex2;
-	VBO color;
-	IBO index;
+	vertex << vert;
+	VBO texcoord;
+	texcoord << texc;
+	IBO indi;
+	indi << ind;
 
-	GLfloat vertexData[][2] = 
-	{
-		{-1.0f, -1.0f},
-		{0.5f, -0.5f},
-		{0.5f, 1.0f},
-	};
+	VAO vao;
 
-	GLfloat vertexData2[][2] = 
-	{
-		{-1.0f, 1.0f},
-		{-1.0f, 0.5f},
-		{-0.5f, 1.0f},
-	};
+	//connect attrib
+	obj.connectAttrib(program, vertex, vao, "position");
+	obj.connectAttrib(program, texcoord, vao, "texcoord");
+	
 
-	GLfloat colorData[][3] =
-	{
-		{1.0f, 0.0f, 0.0f},
-		{0.0f, 0.0f, 1.0f},
-		{0.0f, 1.0f, 0.0f}
-	};
+	Texture<Texture2D> texture;
+	texture.texImage2D("arch-linux-226331.jpg");
 
-	GLushort indexData[] ={0,1,2};
+	texture.bind();
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	 texture.unbind();
+	program.setUniformXt("surftexture",(GLint)texture.getUnit());
 
-	vertex << vertexData;
-	vertex2 << vertexData2;
-	index << indexData;
-
-	vertex = vertex + vertex2;
-
-	color << colorData;
-	color = color + color;
-
-	VAO varray;
-
-	obj.connectAttrib(program, vertex, varray, "LVertexPos2D");
-	obj.connectAttrib(program, color, varray, "Color");
 
 	bool quit = false;
 	SDL_Event e;
@@ -130,13 +133,15 @@ int main(int argc, char* argv[])
 		}
 		CHECK_GL_ERROR;
 		glClear(GL_COLOR_BUFFER_BIT);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		obj.draw<rm_Triangles>(varray, program, vertex);
+		glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+		//glEnable(GL_CULL_FACE);
+		obj.draw<rm_Triangles>(vao, program, indi, {texture});
 		SDL_GL_SwapWindow( window );
 	}
+
 //	obj << End();
 
-	obj.finalize([&](){SDL_GL_DeleteContext(context);});
+	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	return 0;

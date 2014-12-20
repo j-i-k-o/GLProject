@@ -19,11 +19,9 @@ namespace jikoLib{
 				GLObject() :_is_initialized(false)
 			{
 			}
-				bool initialize(const std::function<void()> &init_func)
+				bool initialize()
 				{
 					bool success = true;
-					//create context
-					init_func();
 					//initialize glew
 					glewExperimental = GL_TRUE;
 					GLenum glewError = glewInit();
@@ -34,13 +32,6 @@ namespace jikoLib{
 					}
 					else
 					{
-						/*
-						//use vsync
-						if(SDL_GL_SetSwapInterval(1) < 0)
-						{
-							std::cerr << "warning: unable to set vsync!: " << SDL_GetError() << std::endl;
-						}
-						*/
 						//OpenGL initialize complete
 						DEBUG_OUT("--- OpenGL initialize complete ---");
 						DEBUG_OUT("OpenGL Vendor: " << glGetString(GL_VENDOR));
@@ -49,9 +40,22 @@ namespace jikoLib{
 						DEBUG_OUT(" ");
 						_is_initialized = true;
 					}
+					ilInit();
+					iluInit();
+					ILenum ilerror = ilGetError();
+					if(ilerror != IL_NO_ERROR)
+					{
+						std::cerr << "cannot initialize devIL!: " << iluErrorString(ilerror) << std::endl; 
+					}
+					else
+					{
+						DEBUG_OUT("--- devIL initialize complete ---");
+						ilClearColour(255, 255, 255, 0);
+					}
 					return success;
 				}
 
+				/*
 				void finalize(const std::function<void()> &fin_func)
 				{
 					if(_is_initialized)
@@ -61,21 +65,25 @@ namespace jikoLib{
 						_is_initialized = false;
 					}
 				}
+				*/
 
+				/*
 				void makeCurrent(const std::function<void()> &makec_func)
 				{
 					makec_func();
 					DEBUG_OUT("Make Current");
 				}
+				*/
 
 
-				/*
-				GLObject& operator<<(Begin&& obj)
+				
+				GLObject& operator<<(Begin&&)
 					//initializer
 				{
-					initialize(obj.m_window);
+					initialize();
 					return *this;
 				}
+				/*
 
 				GLObject& operator<<(MakeCurrent&& obj)
 					//make current
@@ -109,6 +117,11 @@ namespace jikoLib{
 						buffer.bind();
 						GLint attribloc = glGetAttribLocation(prog.getID(), name.c_str());
 						CHECK_GL_ERROR;
+						if(attribloc == -1)
+						{
+							std::cerr << "attribute variable " << name << " cannot be found" << std::endl;
+							return;
+						}
 						glVertexAttribPointer(attribloc, buffer.getDim(), buffer.getArrayEnum(), GL_FALSE, buffer.getDim()*getSizeof(buffer.getArrayEnum()), 0);
 						CHECK_GL_ERROR;
 						glEnableVertexAttribArray(attribloc);
@@ -154,6 +167,25 @@ namespace jikoLib{
 						glDrawArrays(RenderMode::RENDER_MODE, 0, vbo.getSizeElem());
 						CHECK_GL_ERROR;
 					}
+
+				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename TexTarget, typename Tex_Unit, typename TexAlloc, typename vbUsage, typename vbAlloc>
+					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo, std::initializer_list<Texture<TexTarget, Tex_Unit, TexAlloc> > tex_list)
+					{
+						for (auto&& var : tex_list) {
+							var.bind();
+						}
+						draw<RenderMode>(varray, program, ibo);
+					}
+
+				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename TexTarget, typename Tex_Unit, typename TexAlloc, typename vbUsage, typename vbAlloc>
+					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ArrayBuffer, vbUsage, vbAlloc> &vbo, std::initializer_list<Texture<TexTarget, Tex_Unit, TexAlloc> > tex_list)
+					{
+						for (auto&& var : tex_list) {
+							var.bind();
+						}
+						draw<RenderMode>(varray, program, vbo);
+					}
+
 		};
 	} 
 }

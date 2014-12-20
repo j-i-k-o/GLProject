@@ -3,7 +3,7 @@
 vpath %.h include
 vpath %.hpp include
 
-LIBPATH=-lSDL2 -lGL -lGLU -lGLEW
+LIBPATH=-lSDL2 -lGL -lGLU -lGLEW -lIL -lILU
 CXX=clang++
 CC=clang
 #CFLAGS=-Wall -Werror 

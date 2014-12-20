@@ -7,6 +7,9 @@
 #include <array>
 #include <type_traits>
 #include <utility>
+#include <IL/il.h>
+#include <IL/ilu.h>
+
 
 namespace jikoLib
 {
@@ -163,13 +166,13 @@ namespace jikoLib
 			{
 				using type =
 					typename type_if<TypeEnum == GL_BYTE, GLbyte,
-					typename type_if<TypeEnum == GL_UNSIGNED_BYTE, GLubyte,
-					typename type_if<TypeEnum == GL_SHORT, GLshort,
-					typename type_if<TypeEnum == GL_UNSIGNED_SHORT, GLushort,
-					typename type_if<TypeEnum == GL_INT, GLint,
-					typename type_if<TypeEnum == GL_UNSIGNED_INT, GLuint,
-					typename type_if<TypeEnum == GL_FLOAT, GLfloat,
-					typename type_if<TypeEnum == GL_DOUBLE, GLdouble,std::nullptr_t>::type>::type>::type>::type>::type>::type>::type>::type;
+								typename type_if<TypeEnum == GL_UNSIGNED_BYTE, GLubyte,
+								typename type_if<TypeEnum == GL_SHORT, GLshort,
+								typename type_if<TypeEnum == GL_UNSIGNED_SHORT, GLushort,
+								typename type_if<TypeEnum == GL_INT, GLint,
+								typename type_if<TypeEnum == GL_UNSIGNED_INT, GLuint,
+								typename type_if<TypeEnum == GL_FLOAT, GLfloat,
+								typename type_if<TypeEnum == GL_DOUBLE, GLdouble,std::nullptr_t>::type>::type>::type>::type>::type>::type>::type>::type;
 				static_assert(!std::is_same<type,std::nullptr_t>::value, "Invalid Enum");
 			};
 
@@ -193,21 +196,20 @@ namespace jikoLib
 		 *
 		 */
 
-		/*
+
 		struct Begin
 		{
-			SDL_Window* m_window;
-			Begin(SDL_Window* window):m_window(window){};
 		};
-		struct MakeCurrent
-		{
+		/*
+			struct MakeCurrent
+			{
 			SDL_Window* m_window;
 			MakeCurrent(SDL_Window* window):m_window(window){};
-		};
-		struct End{};
+			};
+			struct End{};
 
-		*/
-		
+*/
+
 
 
 		//available alloc type
@@ -215,6 +217,7 @@ namespace jikoLib
 		struct Alloc_ShaderProg {};
 		struct Alloc_VertexBuffer {};
 		struct Alloc_VertexArray {};
+		struct Alloc_Texture {};
 
 
 
@@ -283,6 +286,29 @@ namespace jikoLib
 
 				constexpr static allocfunc_t allocfunc = &my_glGenVertexArrays; 
 				constexpr static deallocfunc_t deallocfunc = &my_glDeleteVertexArrays; 
+			};
+
+		template<>
+			struct GLAllocTraits<Alloc_Texture>
+			{
+
+				static GLuint my_glGenTextures()
+				{
+					GLuint id;
+					glGenTextures(1, &id);
+					return id;
+				}
+
+				static void my_glDeleteTextures(GLuint id)
+				{
+					glDeleteTextures(1, &id);
+				}
+
+				using allocfunc_t = GLuint(*)(void);
+				using deallocfunc_t = void(*)(GLuint);
+
+				constexpr static allocfunc_t allocfunc = &my_glGenTextures; 
+				constexpr static deallocfunc_t deallocfunc = &my_glDeleteTextures; 
 			};
 
 
@@ -507,5 +533,445 @@ namespace jikoLib
 			constexpr static GLenum RENDER_MODE = GL_LINE_LOOP;
 		};
 
+
+		/**
+		 * texture target type
+		 *
+		 */
+
+		struct Texture2D
+		{
+			constexpr static GLenum TEXTURE_TARGET = GL_TEXTURE_2D;
+		};
+
+		struct Texture3D
+		{
+			constexpr static GLenum TEXTURE_TARGET = GL_TEXTURE_3D;
+		};
+
+		struct TextureCubeMap
+		{
+			constexpr static GLenum TEXTURE_TARGET = GL_TEXTURE_CUBE_MAP;
+			constexpr static GLenum TEXTURE_NEGX = GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+			constexpr static GLenum TEXTURE_POSX = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+			constexpr static GLenum TEXTURE_NEGY = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+			constexpr static GLenum TEXTURE_POSY = GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+			constexpr static GLenum TEXTURE_NEGZ = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+			constexpr static GLenum TEXTURE_POSZ = GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+		};
+
+		/**
+		 * texture unit
+		 *
+		 */
+
+		template<std::size_t>
+			struct TextureUnit {};
+
+		template<>
+			struct TextureUnit<0>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE0;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 0;
+			};
+		template<>
+			struct TextureUnit<1>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE1;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 1;
+			};
+		template<>
+			struct TextureUnit<2>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE2;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 2;
+			};
+		template<>
+			struct TextureUnit<3>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE3;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 3;
+			};
+		template<>
+			struct TextureUnit<4>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE4;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 4;
+			};
+		template<>
+			struct TextureUnit<5>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE5;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 5;
+			};
+		template<>
+			struct TextureUnit<6>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE6;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 6;
+			};
+		template<>
+			struct TextureUnit<7>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE7;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 7;
+			};
+		template<>
+			struct TextureUnit<8>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE8;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 8;
+			};
+		template<>
+			struct TextureUnit<9>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE9;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 9;
+			};
+		template<>
+			struct TextureUnit<10>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE10;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 10;
+			};
+		template<>
+			struct TextureUnit<11>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE11;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 11;
+			};
+		template<>
+			struct TextureUnit<12>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE12;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 12;
+			};
+		template<>
+			struct TextureUnit<13>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE13;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 13;
+			};
+		template<>
+			struct TextureUnit<14>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE14;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 14;
+			};
+		template<>
+			struct TextureUnit<15>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE15;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 15;
+			};
+		template<>
+			struct TextureUnit<16>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE16;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 16;
+			};
+		template<>
+			struct TextureUnit<17>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE17;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 17;
+			};
+		template<>
+			struct TextureUnit<18>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE18;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 18;
+			};
+		template<>
+			struct TextureUnit<19>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE19;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 19;
+			};
+		template<>
+			struct TextureUnit<20>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE20;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 20;
+			};
+		template<>
+			struct TextureUnit<21>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE21;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 21;
+			};
+		template<>
+			struct TextureUnit<22>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE22;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 22;
+			};
+		template<>
+			struct TextureUnit<23>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE23;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 23;
+			};
+		template<>
+			struct TextureUnit<24>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE24;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 24;
+			};
+		template<>
+			struct TextureUnit<25>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE25;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 25;
+			};
+		template<>
+			struct TextureUnit<26>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE26;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 26;
+			};
+		template<>
+			struct TextureUnit<27>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE27;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 27;
+			};
+		template<>
+			struct TextureUnit<28>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE28;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 28;
+			};
+		template<>
+			struct TextureUnit<29>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE29;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 29;
+			};
+		template<>
+			struct TextureUnit<30>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE30;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 30;
+			};
+		template<>
+			struct TextureUnit<31>
+			{
+				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE31;
+				constexpr static GLuint TEXTURE_UNIT_NUM = 31;
+			};
+
+		/**
+		 * GL_RGB GL_RGBA
+		 *
+		 */
+
+		struct RGB
+		{
+			constexpr static GLenum TEXTURE_COLOR = GL_RGB;
+			constexpr static std::size_t ALIGN = 1;
+			constexpr static ILenum IL_COLOR = IL_RGB;
+		};
+
+		struct RGBA
+		{
+			constexpr static GLenum TEXTURE_COLOR = GL_RGBA;
+			constexpr static std::size_t ALIGN = 4;
+			constexpr static ILenum IL_COLOR = IL_RGBA;
+		};
+
+		/**
+		 * TexImage
+		 *
+		 */
+
+		template<std::size_t Dim>
+			struct TexImage_D {};
+		template<>
+			struct TexImage_D<1>
+			{
+				constexpr static auto& func = glTexImage1D;
+			};
+		template<>
+			struct TexImage_D<2>
+			{
+				constexpr static auto& func = glTexImage2D;
+			};
+		template<>
+			struct TexImage_D<3>
+			{
+				constexpr static auto& func = glTexImage3D;
+			};
+
+		/**
+		 * TextureTraits
+		 *
+		 */
+
+		template<typename TargetType, GLint level>
+			struct TextureTraits
+			{
+					static void texImage2D(const std::string &path)
+					{
+						ILuint imgID;
+						ilGenImages(1, &imgID);
+						ilBindImage(imgID);
+						ILboolean success = ilLoadImage(path.c_str());
+						if(success == IL_TRUE)
+						{
+							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							if(success == IL_TRUE)
+							{
+								//texture load
+								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								CHECK_GL_ERROR;
+								TexImage_D<2>::func(TargetType::TEXTURE_TARGET, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								CHECK_GL_ERROR;
+							}
+						}
+						else
+						{
+							std::cerr << "cannot load image! --did nothing" << std::endl;
+						}
+						ilDeleteImages(1, &imgID);
+					}
+			};
+
+		
+		template<GLint level>
+			struct TextureTraits<TextureCubeMap, level>
+			{
+					static void texImage2D(
+							const std::string &neg_x,
+							const std::string &pos_x,
+							const std::string &neg_y,
+							const std::string &pos_y,
+							const std::string &neg_z,
+							const std::string &pos_z)
+					{
+						ILuint imgID;
+						ilGenImages(1, &imgID);
+						ilBindImage(imgID);
+						ILboolean success;
+
+						//NEG_X
+						success = ilLoadImage(neg_x.c_str());
+						if(success == IL_TRUE)
+						{
+							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							if(success == IL_TRUE)
+							{
+								//texture load
+								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								CHECK_GL_ERROR;
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGX, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								CHECK_GL_ERROR;
+							}
+						}
+						else
+						{
+							std::cerr << "cannot load image! --did nothing" << std::endl;
+						}
+
+						//POS_X
+						success = ilLoadImage(pos_x.c_str());
+						if(success == IL_TRUE)
+						{
+							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							if(success == IL_TRUE)
+							{
+								//texture load
+								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								CHECK_GL_ERROR;
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSX, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								CHECK_GL_ERROR;
+							}
+						}
+						else
+						{
+							std::cerr << "cannot load image! --did nothing" << std::endl;
+						}
+
+						//NEG_Y
+						success = ilLoadImage(neg_y.c_str());
+						if(success == IL_TRUE)
+						{
+							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							if(success == IL_TRUE)
+							{
+								//texture load
+								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								CHECK_GL_ERROR;
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGY, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								CHECK_GL_ERROR;
+							}
+						}
+						else
+						{
+							std::cerr << "cannot load image! --did nothing" << std::endl;
+						}
+
+						//POS_Y
+						success = ilLoadImage(pos_y.c_str());
+						if(success == IL_TRUE)
+						{
+							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							if(success == IL_TRUE)
+							{
+								//texture load
+								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								CHECK_GL_ERROR;
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSY, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								CHECK_GL_ERROR;
+							}
+						}
+						else
+						{
+							std::cerr << "cannot load image! --did nothing" << std::endl;
+						}
+
+						//NEG_Z
+						success = ilLoadImage(neg_z.c_str());
+						if(success == IL_TRUE)
+						{
+							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							if(success == IL_TRUE)
+							{
+								//texture load
+								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								CHECK_GL_ERROR;
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGZ, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								CHECK_GL_ERROR;
+							}
+						}
+						else
+						{
+							std::cerr << "cannot load image! --did nothing" << std::endl;
+						}
+
+						//POS_Z
+						success = ilLoadImage(pos_z.c_str());
+						if(success == IL_TRUE)
+						{
+							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							if(success == IL_TRUE)
+							{
+								//texture load
+								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								CHECK_GL_ERROR;
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSZ, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								CHECK_GL_ERROR;
+							}
+						}
+						else
+						{
+							std::cerr << "cannot load image! --did nothing" << std::endl;
+						}
+
+
+						ilDeleteImages(1, &imgID);
+					}
+	
+			};
 	}
 }

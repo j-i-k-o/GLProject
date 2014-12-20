@@ -1,8 +1,10 @@
 R"(
 #version 120
-varying vec3 vcolor;
+uniform sampler2D surftexture;
+varying vec2 v_tex;
 void main()
 {
-	gl_FragColor = vec4(vcolor, 1.0);
+	gl_FragColor = texture2D(surftexture, v_tex);
+	//gl_FragColor = vec4(v_tex, 0.0, 1.0);
 }
 )"

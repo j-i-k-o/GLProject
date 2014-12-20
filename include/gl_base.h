@@ -1,8 +1,8 @@
 #pragma once
 
-#include <SDL2/SDL.h>
 #include <GL/glew.h>
-#include <SDL2/SDL_opengl.h>
+#include <IL/il.h>
+#include <IL/ilu.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -47,7 +47,7 @@ namespace jikoLib{
 		 *
 		 */
 
-		
+
 
 		//shader
 		template<typename Shader_type, typename Allocator = GLAllocator<Alloc_Shader>>
@@ -201,7 +201,7 @@ namespace jikoLib{
 					{
 						this->shaderprog_id = obj.shaderprog_id;
 						this->isLinked = obj.isLinked;
-						
+
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("shaderprog copied! shaderprog id is " << shaderprog_id);
@@ -299,7 +299,7 @@ namespace jikoLib{
 							//for glUniformXi, glUniformXf
 							using first_type = typename std::tuple_element<0, std::tuple<ArgTypes...>>::type;
 
-							static_assert(is_all_same<ArgTypes...>::value, "ArgTypes must be all same");
+							static_assert(is_all_same<first_type, ArgTypes...>::value, "ArgTypes must be all same");
 							static_assert(is_exist<first_type, GLint, GLfloat>::value, "ArgType must be GLint or GLfloat");
 							static_assert((1 <= sizeof...(ArgTypes))&&(sizeof...(ArgTypes) <= 4), "invalid ArgTypes Num");
 							bind();
@@ -338,26 +338,26 @@ namespace jikoLib{
 						}
 
 					/*
-					template <std::size_t Size_Elem, std::size_t Dim, typename T>
+						template <std::size_t Size_Elem, std::size_t Dim, typename T>
 						void setUniformXtv(const std::string &str, const std::array<std::array<T,Dim>,Size_Elem>& array)
 						{
-							//for glUniformXiv, glUniformXfv
-							static_assert((1 <= Dim)&&(Dim <= 4), "invalid Dim");
-							static_assert(is_exist<T,GLint, GLfloat>::value,"array type must be GLint for GLfloat");
-							bind();
+					//for glUniformXiv, glUniformXfv
+					static_assert((1 <= Dim)&&(Dim <= 4), "invalid Dim");
+					static_assert(is_exist<T,GLint, GLfloat>::value,"array type must be GLint for GLfloat");
+					bind();
 
-							auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
-							CHECK_GL_ERROR;
-							if(loc == -1)
-							{
-								std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
-								return;
-							}
+					auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+					CHECK_GL_ERROR;
+					if(loc == -1)
+					{
+					std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
+					return;
+					}
 
-							glUniformXtv<Dim, T>::func(loc, Size_Elem, array.data());
-							CHECK_GL_ERROR;
-						}
-						*/
+					glUniformXtv<Dim, T>::func(loc, Size_Elem, array.data());
+					CHECK_GL_ERROR;
+					}
+					*/
 
 					//TODO: setUniformMatrixXtv
 
@@ -379,7 +379,6 @@ namespace jikoLib{
 
 			};
 
-		class GLObject;
 
 		//vertexbuffer
 		template<typename TargetType, typename UsageType, typename Allocator = GLAllocator<Alloc_VertexBuffer>>
@@ -387,6 +386,7 @@ namespace jikoLib{
 			{
 				private:
 					GLuint buffer_id;
+
 					bool isSetArray = false; 
 					GLenum ArrayEnum;
 					std::size_t Size_Elem;
@@ -483,7 +483,7 @@ namespace jikoLib{
 						this->ArrayEnum = obj.ArrayEnum;
 						this->Size_Elem = obj.Size_Elem;
 						this->Dim = obj.Dim;
-						
+
 						a.copy(obj.a);
 						CHECK_GL_ERROR;
 						DEBUG_OUT("vbuffer copied! id is " << buffer_id);
@@ -514,24 +514,24 @@ namespace jikoLib{
 					/*
 					 * invalid code
 					 *
-					template<typename T,std::size_t Size_Elem, std::size_t Dim>
-						VertexBuffer& operator<<(const std::array<std::array<T, Dim>, Size_Elem> &array)
-						// Set Array for std::array 
-						{
-							static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-							static_assert( Dim <= 4, "Invalid dimension" );
-							static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
-							static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-									"IBO array type must be GLushort or GLuint or GLubyte");
-							bind();
-							glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
-							CHECK_GL_ERROR;
-							DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-							setSizeElem_Dim_Type<T>(Size_Elem, Dim);
-							return *this;
-						}
+					 template<typename T,std::size_t Size_Elem, std::size_t Dim>
+					 VertexBuffer& operator<<(const std::array<std::array<T, Dim>, Size_Elem> &array)
+					// Set Array for std::array 
+					{
+					static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+					static_assert( Dim <= 4, "Invalid dimension" );
+					static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
+					static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
+					"IBO array type must be GLushort or GLuint or GLubyte");
+					bind();
+					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
+					setSizeElem_Dim_Type<T>(Size_Elem, Dim);
+					return *this;
+					}
 
-						*/
+*/
 
 					template<typename T,std::size_t Size_Elem, std::size_t Dim>
 						VertexBuffer& operator<<(const T (&array)[Size_Elem][Dim])
@@ -598,49 +598,49 @@ namespace jikoLib{
 					 * invalid code
 					 *
 					 template<typename T>
-						VertexBuffer& operator<<(const std::vector<std::vector<T>> &array)
-						// Set Array for std::vector
-						{
-							static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-							static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-									"IBO array type must be GLushort or GLuint or GLubyte");
-							std::size_t Size_Elem = 0;
-							std::size_t Dim = 0;
-							bool first = true;
-							if((Size_Elem = array.size()) == 0)
-							{
-								std::cerr << "Zero Elem! --did nothing." << std::endl;
-								return *this;
-							}
-							for (auto&& sub_array : array) {
-								if(first)
-								{
-									first = false;
-									Dim = sub_array.size();
-								}
-								else
-								{
-									if(Dim != sub_array.size())
-									{
-										std::cerr << "diffelent length array! --did nothing." << std::endl;
-										return *this;
-									}
-								}
-								if(sub_array.size() > 4)
-								{
-									std::cerr << "Invalid dimension! --did nothing" << std::endl;
-									return *this;
-								}
-							}
-							bind();
-							glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
-							CHECK_GL_ERROR;
-							DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-							setSizeElem_Dim_Type<T>(Size_Elem, Dim);
-							return *this;
-						}
+					 VertexBuffer& operator<<(const std::vector<std::vector<T>> &array)
+					// Set Array for std::vector
+					{
+					static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+					static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
+					"IBO array type must be GLushort or GLuint or GLubyte");
+					std::size_t Size_Elem = 0;
+					std::size_t Dim = 0;
+					bool first = true;
+					if((Size_Elem = array.size()) == 0)
+					{
+					std::cerr << "Zero Elem! --did nothing." << std::endl;
+					return *this;
+					}
+					for (auto&& sub_array : array) {
+					if(first)
+					{
+					first = false;
+					Dim = sub_array.size();
+					}
+					else
+					{
+					if(Dim != sub_array.size())
+					{
+					std::cerr << "diffelent length array! --did nothing." << std::endl;
+					return *this;
+					}
+					}
+					if(sub_array.size() > 4)
+					{
+					std::cerr << "Invalid dimension! --did nothing" << std::endl;
+					return *this;
+					}
+					}
+					bind();
+					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
+					setSizeElem_Dim_Type<T>(Size_Elem, Dim);
+					return *this;
+					}
 
-						*/
+*/
 
 					VertexBuffer operator+(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 						//merge buffer data
@@ -685,7 +685,7 @@ namespace jikoLib{
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
-							
+
 							VertexBuffer<TargetType, UsageType, Allocator> buffer;
 							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
 							return buffer;
@@ -976,6 +976,110 @@ namespace jikoLib{
 						return varray_id;
 					}
 			};
+
+
+		template<typename TargetType, typename TexUnit = TextureUnit<0>, typename Allocator = GLAllocator<Alloc_Texture>> 
+			class Texture
+			{
+				private:
+
+					GLuint texture_id;
+					Allocator a;
+
+				public:
+
+					inline void bind() const
+					{
+						glActiveTexture(TexUnit::TEXTURE_UNIT);
+						glBindTexture(TargetType::TEXTURE_TARGET, texture_id);
+						CHECK_GL_ERROR;
+					}
+
+					inline void unbind() const
+					{
+						glActiveTexture(TexUnit::TEXTURE_UNIT);
+						glBindTexture(TargetType::TEXTURE_TARGET, 0);
+						CHECK_GL_ERROR;
+					}
+
+					Texture()
+					{
+						texture_id = a.construct();
+						CHECK_GL_ERROR;
+						bind();
+						DEBUG_OUT("texture created! id is " << texture_id);
+					}
+
+					~Texture()
+					{
+						a.destruct(texture_id);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("texture id " << texture_id << " destructed!");
+					}
+
+					Texture(const Texture<TargetType, TexUnit, Allocator> &obj)
+					{
+						this->texture_id = obj.texture_id;
+
+						a.copy(obj.a);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("texture copied! id is " << texture_id);
+					}
+
+					Texture(Texture<TargetType, TexUnit, Allocator>&& obj)
+					{
+						this->texture_id = obj.texture_id;
+
+						a.move(std::move(obj.a));
+						CHECK_GL_ERROR;
+						DEBUG_OUT("texture moved! id is " << texture_id);
+					}
+
+					Texture& operator=(const Texture<TargetType, TexUnit, Allocator> &obj)
+					{
+						a.destruct(texture_id);
+						this->texture_id = obj.texture_id;
+
+						a.copy(obj.a);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("texture copied! id is " << texture_id);
+						return *this;
+					}
+
+					Texture& operator=(Texture<TargetType, TexUnit, Allocator>&& obj)
+					{
+						a.destruct(texture_id);
+						this->texture_id = obj.texture_id;
+
+						a.move(std::move(obj.a));
+						CHECK_GL_ERROR;
+						DEBUG_OUT("texture moved! id is " << texture_id);
+						return *this;
+					}
+
+					inline GLuint getID() const
+					{
+						return texture_id;
+					}
+
+
+					template<GLint level = 0, typename... Args>
+						inline void texImage2D(Args&&... args)
+						{
+							this->bind();
+							TextureTraits<TargetType, level>::texImage2D(std::forward<Args>(args)...);
+						}
+
+					inline GLuint getUnit() const
+					{
+						return TexUnit::TEXTURE_UNIT_NUM; 
+					}
+
+
+
+
+			};
+
 
 		//some tips
 		using VShader = Shader<VertexShader>;
