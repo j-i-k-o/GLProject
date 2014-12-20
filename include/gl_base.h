@@ -1063,14 +1063,14 @@ namespace jikoLib{
 					}
 
 
-					template<GLint level = 0, typename... Args>
+					template<GLint level = 0, typename int_format = RGBA, typename format = RGBA, typename... Args>
 						inline void texImage2D(Args&&... args)
 						{
 							this->bind();
-							TextureTraits<TargetType, level>::texImage2D(std::forward<Args>(args)...);
+							TextureTraits<TargetType, level, int_format, format>::texImage2D(std::forward<Args>(args)...);
 						}
 
-					inline GLuint getUnit() const
+					inline GLint getUnit() const
 					{
 						return TexUnit::TEXTURE_UNIT_NUM; 
 					}

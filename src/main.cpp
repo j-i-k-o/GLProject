@@ -58,6 +58,7 @@ int main(int argc, char* argv[])
 	obj << MakeCurrent(window);
 	*/
 	context = SDL_GL_CreateContext(window);
+
 	obj << Begin();
 
 	SDL_GL_SetSwapInterval(1);
@@ -84,13 +85,13 @@ int main(int argc, char* argv[])
 
 	GLfloat texc[][2] = 
 	{
-		{1.0, 1.0},
-		{0.0, 1.0},
+		{1.0, 0.0},
 		{0.0, 0.0},
-		{1.0, 0.0}
+		{0.0, 1.0},
+		{1.0, 1.0}
 	};
 
-	GLushort ind[] = {0,2,3};
+	GLushort ind[] = {0,2,3,0,1,2};
 
 	VBO vertex;
 	vertex << vert;
@@ -107,13 +108,13 @@ int main(int argc, char* argv[])
 	
 
 	Texture<Texture2D> texture;
-	texture.texImage2D("arch-linux-226331.jpg");
+	texture.texImage2D<0, RGB, RGB>("arch-linux-226331.jpg");
 
 	texture.bind();
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	 texture.unbind();
-	program.setUniformXt("surftexture",(GLint)texture.getUnit());
+	program.setUniformXt("surftexture", texture.getUnit());
 
 
 	bool quit = false;
@@ -133,7 +134,7 @@ int main(int argc, char* argv[])
 		}
 		CHECK_GL_ERROR;
 		glClear(GL_COLOR_BUFFER_BIT);
-		glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		//glEnable(GL_CULL_FACE);
 		obj.draw<rm_Triangles>(vao, program, indi, {texture});
 		SDL_GL_SwapWindow( window );

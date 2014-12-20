@@ -808,7 +808,7 @@ namespace jikoLib
 		 *
 		 */
 
-		template<typename TargetType, GLint level>
+		template<typename TargetType, GLint level, typename int_format, typename format>
 			struct TextureTraits
 			{
 					static void texImage2D(const std::string &path)
@@ -819,13 +819,13 @@ namespace jikoLib
 						ILboolean success = ilLoadImage(path.c_str());
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 							if(success == IL_TRUE)
 							{
 								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
 								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TargetType::TEXTURE_TARGET, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								TexImage_D<2>::func(TargetType::TEXTURE_TARGET, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
 								CHECK_GL_ERROR;
 							}
 						}
@@ -838,8 +838,8 @@ namespace jikoLib
 			};
 
 		
-		template<GLint level>
-			struct TextureTraits<TextureCubeMap, level>
+		template<GLint level, typename int_format,typename format>
+			struct TextureTraits<TextureCubeMap, level, int_format, format>
 			{
 					static void texImage2D(
 							const std::string &neg_x,
@@ -858,13 +858,13 @@ namespace jikoLib
 						success = ilLoadImage(neg_x.c_str());
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 							if(success == IL_TRUE)
 							{
 								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
 								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGX, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGX, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
 								CHECK_GL_ERROR;
 							}
 						}
@@ -877,13 +877,13 @@ namespace jikoLib
 						success = ilLoadImage(pos_x.c_str());
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 							if(success == IL_TRUE)
 							{
 								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
 								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSX, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSX, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
 								CHECK_GL_ERROR;
 							}
 						}
@@ -896,13 +896,13 @@ namespace jikoLib
 						success = ilLoadImage(neg_y.c_str());
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 							if(success == IL_TRUE)
 							{
 								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
 								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGY, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGY, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
 								CHECK_GL_ERROR;
 							}
 						}
@@ -915,13 +915,13 @@ namespace jikoLib
 						success = ilLoadImage(pos_y.c_str());
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 							if(success == IL_TRUE)
 							{
 								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
 								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSY, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSY, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
 								CHECK_GL_ERROR;
 							}
 						}
@@ -934,13 +934,13 @@ namespace jikoLib
 						success = ilLoadImage(neg_z.c_str());
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 							if(success == IL_TRUE)
 							{
 								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
 								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGZ, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGZ, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
 								CHECK_GL_ERROR;
 							}
 						}
@@ -953,13 +953,13 @@ namespace jikoLib
 						success = ilLoadImage(pos_z.c_str());
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 							if(success == IL_TRUE)
 							{
 								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
 								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSZ, level, GL_RGBA, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSZ, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
 								CHECK_GL_ERROR;
 							}
 						}
