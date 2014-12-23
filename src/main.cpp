@@ -45,18 +45,18 @@ int main(int argc, char* argv[])
 		std::cerr << "Window could not be created!: " << SDL_GetError() << std::endl;
 	}
 
-//	SDL_Thread* threadID = SDL_CreateThread(threadfunction, "MyThread", (void*)(window));
-//
-//
-//
-//	setAttribute<Attr_GLVersion<2,1>>();
+	//	SDL_Thread* threadID = SDL_CreateThread(threadfunction, "MyThread", (void*)(window));
+	//
+	//
+	//
+	//	setAttribute<Attr_GLVersion<2,1>>();
 
 	SDL_GLContext context;
 
 	/*
-	obj << Begin(window);
-	obj << MakeCurrent(window);
-	*/
+		obj << Begin(window);
+		obj << MakeCurrent(window);
+		*/
 	context = SDL_GL_CreateContext(window);
 
 	obj << Begin();
@@ -74,12 +74,12 @@ int main(int argc, char* argv[])
 	fshader << fshader_source;
 
 	program << vshader << fshader << link_these();
-	
+
 	GLfloat vert[][2] = 
 	{
-		{0.5, 0.5},
+		{1.0, 0.5},
 		{-0.5, 0.5},
-		{-0.5, -0.5},
+		{-1.0, -0.5},
 		{0.5, -0.5}
 	};
 
@@ -97,29 +97,30 @@ int main(int argc, char* argv[])
 	vertex << vert;
 	VBO texcoord;
 	texcoord << texc;
-	IBO indi;
-	indi << ind;
-
-	VAO vao;
-
-	//connect attrib
-	obj.connectAttrib(program, vertex, vao, "position");
-	obj.connectAttrib(program, texcoord, vao, "texcoord");
+	IBO index;
+	index << ind;
 	
+	VAO v_array;
 
-	Texture<Texture2D> texture;
-	texture.texImage2D<0, RGB, RGB>("arch-linux-226331.jpg");
+	obj.connectAttrib(program, vertex, v_array, "position");
+	obj.connectAttrib(program, texcoord, v_array, "texcoord");
+
+	Texture<Texture2D, TextureUnit<0>> texture;
+	texture.texImage2D("arch-linux-226331.jpg");
 
 	texture.bind();
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	 texture.unbind();
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	texture.unbind();
 	program.setUniformXt("surftexture", texture.getUnit());
 
 
 	bool quit = false;
 	SDL_Event e;
-//	SDL_WaitThread(threadID, NULL);
+	//	SDL_WaitThread(threadID, NULL);
 
 	while( !quit )
 	{
@@ -136,11 +137,11 @@ int main(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		//glEnable(GL_CULL_FACE);
-		obj.draw<rm_Triangles>(vao, program, indi, {texture});
+		obj.draw(v_array, program, index, {texture});
 		SDL_GL_SwapWindow( window );
 	}
 
-//	obj << End();
+	//	obj << End();
 
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
