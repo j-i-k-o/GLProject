@@ -314,6 +314,7 @@ namespace jikoLib{
 
 							glUniformXt<sizeof...(ArgTypes), first_type>::func(loc, args...);
 							CHECK_GL_ERROR;
+							unbind();
 						}
 
 
@@ -335,47 +336,129 @@ namespace jikoLib{
 
 							glUniformXtv<Dim, T>::func(loc, Size_Elem, array);
 							CHECK_GL_ERROR;
+							unbind();
 						}
 
-					/*
-						template <std::size_t Size_Elem, std::size_t Dim, typename T>
-						void setUniformXtv(const std::string &str, const std::array<std::array<T,Dim>,Size_Elem>& array)
+					template <std::size_t Dim, typename T>
+						void setUniformXtv(const std::string &str, const T (&array)[Dim])
 						{
-					//for glUniformXiv, glUniformXfv
-					static_assert((1 <= Dim)&&(Dim <= 4), "invalid Dim");
-					static_assert(is_exist<T,GLint, GLfloat>::value,"array type must be GLint for GLfloat");
-					bind();
+							//for glUniformXiv, glUniformXfv
+							static_assert((1 <= Dim)&&(Dim <= 4), "invalid Dim");
+							static_assert(is_exist<T,GLint, GLfloat>::value,"array type must be GLint for GLfloat");
+							bind();
 
-					auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
-					CHECK_GL_ERROR;
-					if(loc == -1)
-					{
-					std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
-					return;
-					}
+							auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+							CHECK_GL_ERROR;
+							if(loc == -1)
+							{
+								std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
+								return;
+							}
 
-					glUniformXtv<Dim, T>::func(loc, Size_Elem, array.data());
-					CHECK_GL_ERROR;
-					}
-					*/
-
-					//TODO: setUniformMatrixXtv
-
-
-					//for glm
-					inline void setUniformMatrix4fv_glm(const std::string &str, const glm::mat4 &matrix)
-					{
-						bind();
-						auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
-						CHECK_GL_ERROR;
-						if(loc == -1)
-						{
-							std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
-							return;
+							glUniformXtv<Dim, T>::func(loc, 1, array);
+							CHECK_GL_ERROR;
+							unbind();
 						}
 
-						glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
-					}
+
+					template<typename T>
+						void setUniformXtv(const std::string &str, const T *array, std::size_t Size_Elem, std::size_t Dim = 1)
+						{
+							static_assert(is_exist<T,GLint, GLfloat>::value,"array type must be GLint for GLfloat");
+							bind();
+							auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+							CHECK_GL_ERROR;
+							if(loc == -1)
+							{
+								std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
+								return;
+							}
+							switch (Dim) {
+								case 1:
+									glUniformXtv<1, T>::func(loc, Size_Elem, array);
+									break;
+								case 2:
+									glUniformXtv<2, T>::func(loc, Size_Elem, array);
+									break;
+								case 3:
+									glUniformXtv<3, T>::func(loc, Size_Elem, array);
+									break;
+								case 4:
+									glUniformXtv<4, T>::func(loc, Size_Elem, array);
+									break;
+								default:
+									std::cerr << "invalid Dim Number --did nothing." << std::endl;
+									break;
+							}
+							unbind();
+
+						}
+
+					template<std::size_t Size_Elem, std::size_t Dim, typename T>
+						void setUniformMatrixXtv(const std::string &str, const T (&array)[Size_Elem][Dim][Dim])
+						{
+							static_assert(is_exist<T, GLfloat>::value, "array must be GLfloat.");
+							static_assert((2 <= Dim)&&(Dim <= 4), "invalid Dim");
+
+							bind();
+							auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+							CHECK_GL_ERROR;
+							if(loc == -1)
+							{
+								std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
+								return;
+							}
+							glUniformMatrixXtv<Dim, T>::func(loc, Size_Elem, GL_FALSE, array);
+							unbind();
+						}
+
+					template<std::size_t Dim, typename T>
+						void setUniformMatrixXtv(const std::string &str, const T (&array)[Dim][Dim])
+						{
+							static_assert(is_exist<T, GLfloat>::value, "array must be GLfloat.");
+							static_assert((2 <= Dim)&&(Dim <= 4), "invalid Dim");
+
+							bind();
+							auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+							CHECK_GL_ERROR;
+							if(loc == -1)
+							{
+								std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
+								return;
+							}
+							glUniformMatrixXtv<Dim, T>::func(loc, 1, GL_FALSE, array);
+							unbind();
+						}
+
+					template<typename T>
+						void setUniformMatrixXtv(const std::string &str, const T *array, std::size_t Size_Elem, std::size_t Dim)
+						{
+							static_assert(is_exist<T, GLfloat>::value, "array must be GLfloat.");
+							bind();
+							auto loc = glGetUniformLocation(shaderprog_id, str.c_str());
+							CHECK_GL_ERROR;
+							if(loc == -1)
+							{
+								std::cerr << "uniform variable " << str << " cannot be found" << std::endl;
+								return;
+							}
+							switch(Dim)
+							{
+								case 2:
+									glUniformMatrixXtv<2, T>::func(loc, Size_Elem, GL_FALSE, array);
+									break;
+								case 3:
+									glUniformMatrixXtv<3, T>::func(loc, Size_Elem, GL_FALSE, array);
+									break;
+								case 4:
+									glUniformMatrixXtv<4, T>::func(loc, Size_Elem, GL_FALSE, array);
+									break;
+								default:
+									std::cerr << "invalid Dim Number --did nothing." << std::endl;
+									break;
+							}
+							unbind();
+						}
 
 			};
 
@@ -440,6 +523,7 @@ namespace jikoLib{
 						CHECK_GL_ERROR;
 						bind();
 						DEBUG_OUT("vbuffer created! id is " << buffer_id);
+						unbind();
 					}
 
 					~VertexBuffer()
@@ -547,11 +631,12 @@ namespace jikoLib{
 							CHECK_GL_ERROR;
 							DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
 							setSizeElem_Dim_Type<T>(Size_Elem, Dim);
+							unbind();
 							return *this;
 						}
 
 					template<typename T>
-						void copyData(const T* array, std::size_t Size_Elem, std::size_t Dim)
+						void copyData(const T* array, std::size_t Size_Elem, std::size_t Dim = 1)
 						{
 							static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
 							static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
@@ -561,8 +646,16 @@ namespace jikoLib{
 							CHECK_GL_ERROR;
 							DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
 							setSizeElem_Dim_Type<T>(Size_Elem, Dim);
+							unbind();
 						}
 
+					template<typename T,std::size_t Size_Elem, std::size_t Dim>
+						inline void copyData(const T (&array)[Size_Elem][Dim])
+						{
+							this << array;
+						}
+
+					
 					template<typename T, std::size_t Size_Elem>
 						VertexBuffer& operator<<(const T (&array)[Size_Elem])
 						//Set Array for raw array
@@ -576,9 +669,11 @@ namespace jikoLib{
 							CHECK_GL_ERROR;
 							DEBUG_OUT("allocate "<< Size_Elem*sizeof(T) <<" B success! buffer id is " << buffer_id);
 							setSizeElem_Dim_Type<T>(Size_Elem, 1);
+							unbind();
 							return *this;
 						}
 
+					/*
 					template<typename T>
 						void copyData(const T* array, std::size_t Size_Elem)
 						{
@@ -591,6 +686,7 @@ namespace jikoLib{
 							DEBUG_OUT("allocate "<< Size_Elem*sizeof(T) <<" B success! buffer id is " << buffer_id);
 							setSizeElem_Dim_Type<T>(Size_Elem, 1);
 						}
+						*/
 
 
 					/*
@@ -675,6 +771,7 @@ namespace jikoLib{
 							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							this->unbind();
 
 							obj.bind();
 							GLbyte *temp_o_array = static_cast<GLbyte*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
@@ -682,12 +779,14 @@ namespace jikoLib{
 							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							obj.unbind();
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
 
 							VertexBuffer<TargetType, UsageType, Allocator> buffer;
 							buffer.copyData(array.data(), this->Size_Elem+obj.Size_Elem, this->Dim);
+
 							return buffer;
 						}
 						if(this->ArrayEnum == GL_UNSIGNED_BYTE)
@@ -702,6 +801,7 @@ namespace jikoLib{
 							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							this->unbind();
 
 							obj.bind();
 							GLubyte *temp_o_array = static_cast<GLubyte*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
@@ -709,6 +809,7 @@ namespace jikoLib{
 							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							obj.unbind();
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
@@ -729,6 +830,7 @@ namespace jikoLib{
 							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							this->unbind();
 
 							obj.bind();
 							GLshort *temp_o_array = static_cast<GLshort*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
@@ -736,6 +838,7 @@ namespace jikoLib{
 							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							obj.unbind();
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
@@ -756,6 +859,7 @@ namespace jikoLib{
 							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							this->unbind();
 
 							obj.bind();
 							GLushort *temp_o_array = static_cast<GLushort*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
@@ -763,6 +867,7 @@ namespace jikoLib{
 							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							obj.unbind();
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
@@ -783,6 +888,7 @@ namespace jikoLib{
 							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							this->unbind();
 
 							obj.bind();
 							GLint *temp_o_array = static_cast<GLint*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
@@ -790,6 +896,7 @@ namespace jikoLib{
 							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							obj.unbind();
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
@@ -810,6 +917,7 @@ namespace jikoLib{
 							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							this->unbind();
 
 							obj.bind();
 							GLuint *temp_o_array = static_cast<GLuint*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
@@ -817,6 +925,7 @@ namespace jikoLib{
 							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							obj.unbind();
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
@@ -837,6 +946,7 @@ namespace jikoLib{
 							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							this->unbind();
 
 							obj.bind();
 							GLfloat *temp_o_array = static_cast<GLfloat*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
@@ -844,6 +954,7 @@ namespace jikoLib{
 							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							obj.unbind();
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
@@ -864,6 +975,7 @@ namespace jikoLib{
 							std::copy(temp_t_array, temp_t_array+this->Dim*this->Size_Elem, t_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							this->unbind();
 
 							obj.bind();
 							GLdouble *temp_o_array = static_cast<GLdouble*>(glMapBuffer(TargetType::BUFFER_TARGET, GL_READ_ONLY));
@@ -871,6 +983,7 @@ namespace jikoLib{
 							std::copy(temp_o_array, temp_o_array+obj.Dim*obj.Size_Elem, o_array.begin());
 							glUnmapBuffer(TargetType::BUFFER_TARGET);
 							CHECK_GL_ERROR;
+							obj.unbind();
 
 							array.insert(array.begin(), t_array.begin(), t_array.end());
 							array.insert(array.begin()+t_array.size(), o_array.begin(), o_array.end());
@@ -915,6 +1028,14 @@ namespace jikoLib{
 							ibo.bind();
 							unbind();
 						}
+					template<typename IBOAlloc>
+						inline void unbindIBO(const VertexBuffer<ElementArrayBuffer, IBOAlloc> &ibo) const
+						{
+							bind();
+							ibo.unbind();
+							unbind();
+						}
+
 
 					VertexArray()
 					{
@@ -922,6 +1043,7 @@ namespace jikoLib{
 						CHECK_GL_ERROR;
 						bind();
 						DEBUG_OUT("varray created! id is " << varray_id);
+						unbind();
 					}
 
 					~VertexArray()
@@ -1008,6 +1130,7 @@ namespace jikoLib{
 						CHECK_GL_ERROR;
 						bind();
 						DEBUG_OUT("texture created! id is " << texture_id);
+						unbind();
 					}
 
 					~Texture()
@@ -1066,18 +1189,15 @@ namespace jikoLib{
 					template<GLint level = 0, typename int_format = RGBA, typename format = RGBA, typename... Args>
 						inline void texImage2D(Args&&... args)
 						{
-							this->bind();
+							bind();
 							TextureTraits<TargetType, level, int_format, format>::texImage2D(std::forward<Args>(args)...);
+							unbind();
 						}
 
 					inline GLint getUnit() const
 					{
 						return TexUnit::TEXTURE_UNIT_NUM; 
 					}
-
-
-
-
 			};
 
 

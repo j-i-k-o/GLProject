@@ -126,6 +126,7 @@ namespace jikoLib{
 						CHECK_GL_ERROR;
 						glEnableVertexAttribArray(attribloc);
 						CHECK_GL_ERROR;
+						buffer.unbind();
 						varray.unbind();
 					}
 
@@ -136,8 +137,17 @@ namespace jikoLib{
 						CHECK_GL_ERROR;
 					}
 
+				template<typename Allocator_sh>
+				inline void connectAttrib(const Shader<Allocator_sh> &prog, const Mesh3D &mesh, const std::string &vertex_attr, const std::string &normal_attr, const std::string &texcrd_attr)
+				{
+					this->connectAttrib(prog, mesh.getVertex(), mesh.getVArray(), vertex_attr);
+					this->connectAttrib(prog, mesh.getNormal(), mesh.getVArray(), normal_attr);
+					this->connectAttrib(prog, mesh.getTexcrd(), mesh.getVArray(), texcrd_attr);
+				}
+
 				//draw
 
+				
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
 					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo)
 					{
@@ -152,6 +162,9 @@ namespace jikoLib{
 						//else
 						glDrawElements(RenderMode::RENDER_MODE, ibo.getSizeElem(), ibo.getArrayEnum(), NULL);
 						CHECK_GL_ERROR;
+						program.unbind();
+						ibo.unbind();
+						varray.unbind();
 					}
 
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
@@ -166,15 +179,21 @@ namespace jikoLib{
 						//else
 						glDrawArrays(RenderMode::RENDER_MODE, 0, vbo.getSizeElem());
 						CHECK_GL_ERROR;
+						program.unbind();
+						varray.unbind();
 					}
+					
 
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename TexTarget, typename Tex_Unit, typename TexAlloc, typename vbUsage, typename vbAlloc>
-					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo, std::initializer_list<Texture<TexTarget, Tex_Unit, TexAlloc> > tex_list)
+					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo, std::initializer_list<Texture<TexTarget, Tex_Unit, TexAlloc>> tex_list)
 					{
 						for (auto&& var : tex_list) {
 							var.bind();
 						}
 						draw<RenderMode>(varray, program, ibo);
+						for(auto&& var : tex_list) {
+							var.unbind();
+						}
 					}
 
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename TexTarget, typename Tex_Unit, typename TexAlloc, typename vbUsage, typename vbAlloc>
@@ -184,8 +203,28 @@ namespace jikoLib{
 							var.bind();
 						}
 						draw<RenderMode>(varray, program, vbo);
+						for(auto&& var : tex_list) {
+							var.unbind();
+						}
 					}
 
+				template<typename RenderMode = rm_Triangles, typename Sp_Alloc>
+					inline void draw(const Mesh3D &obj, const ShaderProg<Sp_Alloc> &program)
+					{
+						if(obj.getIsIndexSet())
+							draw<RenderMode>(obj.getVArray(), program, obj.getIndex());
+						else
+							draw<RenderMode>(obj.getVArray(), program, obj.getVertex());
+					}
+				
+				template<typename RenderMode = rm_Triangles, typename Sp_Alloc, typename TexTarget, typename Tex_Unit, typename TexAlloc>
+					inline void draw(const Mesh3D &obj, const ShaderProg<Sp_Alloc> &program, std::initializer_list<Texture<TexTarget, Tex_Unit, TexAlloc> > tex_list)
+					{
+						if(obj.getIsIndexSet())
+							draw<RenderMode>(obj.getVArray(), program, obj.getIndex(), tex_list);
+						else
+							draw<RenderMode>(obj.getVArray(), program, obj.getVertex(), tex_list);
+					}
 		};
 	} 
 }
