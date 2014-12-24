@@ -2,7 +2,7 @@
 
 #include "gl_base.h"
 #include "gl_debug.h"
-#include "gl_mesh.h"
+#include "gl_3D.h"
 #include <functional>
 
 namespace jikoLib{

@@ -673,6 +673,12 @@ namespace jikoLib{
 							return *this;
 						}
 
+					template<typename T, std::size_t Size_Elem>
+						inline void copyData(const T (&array)[Size_Elem])
+						{
+							this << array;
+						}
+
 					/*
 					template<typename T>
 						void copyData(const T* array, std::size_t Size_Elem)
