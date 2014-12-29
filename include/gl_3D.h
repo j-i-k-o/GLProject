@@ -1,7 +1,7 @@
 #pragma once
 
-#define _USE_MATH_DEFINES
 #include <cmath>
+#define M_PI 3.14159265358979323846
 #include <vector>
 #include "gl_helper.h"
 #include "gl_base.h"
@@ -160,7 +160,7 @@ namespace jikoLib{
 					:pos(0.0f, 0.0f, 0.0f),
 					drct(1.0f, 0.0f, 0.0f),
 					up(0.0f, 1.0f, 0.0f),
-					fovy(M_PI_4),
+					fovy(M_PI/4.0),
 					aspect(1.0f),
 					_near(0.1f),
 					_far(10.0f) {}
