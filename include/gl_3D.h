@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <vector>
 #include "gl_helper.h"
 #include "gl_base.h"
 #include "gl_debug.h"
@@ -79,11 +80,8 @@ namespace jikoLib{
 				}
 
 				template<typename T, std::size_t Size_Elem>
-				inline void copyData(const T (&vert)[Size_Elem][3], const T (&norm)[Size_Elem][3], const T (&tex)[Size_Elem][2], const T (&ind)[Size_Elem])
+				inline void copyIndex(const T (&ind)[Size_Elem])
 				{
-					vertex.copyData(vert);
-					normal.copyData(norm);
-					texcrd.copyData(tex );
 					index.copyData(ind);
 				}
 
@@ -96,11 +94,8 @@ namespace jikoLib{
 					}
 
 				template<typename T>
-					inline void copyData(const T *vert, const T *norm, const T *tex, const T *ind, std::size_t Size_Elem)
+					inline void copyIndex(const T *ind, std::size_t Size_Elem)
 					{
-						vertex.copyData(vert, Size_Elem, 3);
-						normal.copyData(norm, Size_Elem, 3);
-						texcrd.copyData( tex, Size_Elem, 2);
 						index.copyData(ind, Size_Elem);
 					}
 
@@ -139,7 +134,7 @@ namespace jikoLib{
 					return this->rot;
 				}
 
-				glm::mat4 getModelMatrix()
+				inline glm::mat4 getModelMatrix()
 				{
 					glm::mat4 mat = glm::mat4_cast(rot);
 					glm::mat4 poyo = mat*glm::scale(glm::mat4(), scale);
@@ -158,8 +153,6 @@ namespace jikoLib{
 				GLfloat _near;
 				GLfloat _far;
 
-				glm::mat4 viewMat;
-				glm::mat4 projMat;
 			public:
 
 				Camera()
@@ -212,16 +205,40 @@ namespace jikoLib{
 					return this->drct;
 				}
 
-				const glm::mat4& getViewMatrix()
+				inline glm::mat4 getViewMatrix()
 				{
-					viewMat = glm::lookAt(pos, drct, up);
-					return viewMat;
+					return glm::lookAt(pos, drct, up);
 				}
 
-				const glm::mat4& getProjectionMatrix()
+				inline glm::mat4 getProjectionMatrix()
 				{
-					projMat = glm::perspective(fovy, aspect, _near, _far);
-					return projMat;
+					return glm::perspective(fovy, aspect, _near, _far);
+				}
+		};
+
+		class AssimpLoader{
+			private:
+				AssimpLoader(const AssimpLoader&) = delete;
+				AssimpLoader(AssimpLoader&&) = delete;
+				AssimpLoader& operator=(const AssimpLoader&);
+				AssimpLoader& operator=(AssimpLoader&&);
+
+				Assimp::Importer importer;
+				const aiScene *scene; //nullptr if not loaded
+
+			public:
+
+				AssimpLoader(const std::string &path) :scene(importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs))
+				{
+					if(scene == nullptr)
+					{
+						std::cerr << "Assimp ReadFileError: " << importer.GetErrorString() << std::endl;
+					}
+				};
+
+				inline const aiScene* getScene() const
+				{
+					return this->scene; 
 				}
 		};
 	}

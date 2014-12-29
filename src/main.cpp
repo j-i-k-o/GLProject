@@ -105,18 +105,22 @@ int main(int argc, char* argv[])
 	obj.connectAttrib(program, vertex, v_array, "position");
 	obj.connectAttrib(program, texcoord, v_array, "texcoord");
 
-	Texture<Texture2D, TextureUnit<0>> texture;
+	Texture<Texture2D> texture;
 	texture.texImage2D("arch-linux-226331.jpg");
 
-	texture.bind();
+	texture.bind(0);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	texture.unbind();
-	program.setUniformXt("surftexture", texture.getUnit());
+	program.setUniformXt("surftexture", 1);
 
+//	AssimpLoader al("Porsche_911_GT2.obj");
+
+	std::vector<std::tuple<Texture<Texture2D>, std::size_t>> tex_array;
+	tex_array.push_back(std::make_tuple(texture, 1));
 
 	bool quit = false;
 	SDL_Event e;
@@ -137,7 +141,7 @@ int main(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		//glEnable(GL_CULL_FACE);
-		obj.draw(v_array, program, index, {texture});
+		obj.draw(v_array, program, index, tex_array);
 		SDL_GL_SwapWindow( window );
 	}
 

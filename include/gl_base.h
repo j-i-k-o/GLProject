@@ -4,9 +4,6 @@
 #include <IL/il.h>
 #include <IL/ilu.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <iostream>
 #include <cassert>
 #include <string>
@@ -1106,7 +1103,7 @@ namespace jikoLib{
 			};
 
 
-		template<typename TargetType, typename TexUnit = TextureUnit<0>, typename Allocator = GLAllocator<Alloc_Texture>> 
+		template<typename TargetType, typename Allocator = GLAllocator<Alloc_Texture>> 
 			class Texture
 			{
 				private:
@@ -1115,17 +1112,20 @@ namespace jikoLib{
 					Allocator a;
 
 				public:
-
-					inline void bind() const
+					inline void bind(std::size_t TexUnitNum = 0) const
 					{
-						glActiveTexture(TexUnit::TEXTURE_UNIT);
+						if(32 <= TexUnitNum)
+						{
+							std::cerr << "TextureUnit must be between 0 and 32. --set TextureUnit 0" << std::endl;
+							TexUnitNum = 0;
+						}
+						glActiveTexture(GL_TEXTURE0 + TexUnitNum);
 						glBindTexture(TargetType::TEXTURE_TARGET, texture_id);
 						CHECK_GL_ERROR;
 					}
 
 					inline void unbind() const
 					{
-						glActiveTexture(TexUnit::TEXTURE_UNIT);
 						glBindTexture(TargetType::TEXTURE_TARGET, 0);
 						CHECK_GL_ERROR;
 					}
@@ -1146,7 +1146,7 @@ namespace jikoLib{
 						DEBUG_OUT("texture id " << texture_id << " destructed!");
 					}
 
-					Texture(const Texture<TargetType, TexUnit, Allocator> &obj)
+					Texture(const Texture<TargetType, Allocator> &obj)
 					{
 						this->texture_id = obj.texture_id;
 
@@ -1155,7 +1155,7 @@ namespace jikoLib{
 						DEBUG_OUT("texture copied! id is " << texture_id);
 					}
 
-					Texture(Texture<TargetType, TexUnit, Allocator>&& obj)
+					Texture(Texture<TargetType, Allocator>&& obj)
 					{
 						this->texture_id = obj.texture_id;
 
@@ -1164,7 +1164,7 @@ namespace jikoLib{
 						DEBUG_OUT("texture moved! id is " << texture_id);
 					}
 
-					Texture& operator=(const Texture<TargetType, TexUnit, Allocator> &obj)
+					Texture& operator=(const Texture<TargetType, Allocator> &obj)
 					{
 						a.destruct(texture_id);
 						this->texture_id = obj.texture_id;
@@ -1175,7 +1175,7 @@ namespace jikoLib{
 						return *this;
 					}
 
-					Texture& operator=(Texture<TargetType, TexUnit, Allocator>&& obj)
+					Texture& operator=(Texture<TargetType, Allocator>&& obj)
 					{
 						a.destruct(texture_id);
 						this->texture_id = obj.texture_id;
@@ -1199,11 +1199,6 @@ namespace jikoLib{
 							TextureTraits<TargetType, level, int_format, format>::texImage2D(std::forward<Args>(args)...);
 							unbind();
 						}
-
-					inline GLint getUnit() const
-					{
-						return TexUnit::TEXTURE_UNIT_NUM; 
-					}
 			};
 
 

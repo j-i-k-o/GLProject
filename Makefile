@@ -3,14 +3,14 @@
 vpath %.h include
 vpath %.hpp include
 
-LIBPATH=-lSDL2 -lGL -lGLU -lGLEW -lIL -lILU
+LIBPATH=-lSDL2 -lGL -lGLU -lGLEW -lIL -lILU -lassimp
 CXX=clang++
 CC=clang
 #CFLAGS=-Wall -Werror 
 CFLAGS=-Wall 
 #CXXFLAGS=-Wextra -std=c++11 -Wall -Werror 
 CXXFLAGS=-Wextra -std=c++11 -Wall -g -O0  
-CPPFLAGS= -DGLEW_STATIC 
+CPPFLAGS= -DGLEW_STATIC -DDEBUG
 #program name
 PROG=build/prog
 #source codes
