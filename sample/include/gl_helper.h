@@ -784,75 +784,7 @@ namespace jikoLib
 
 						ilDeleteImages(1, &imgID);
 					}
-
-			};
-
-		//Texture Parameter
-		template<GLenum param>
-			struct Wrap_S{
-				static_assert((param == GL_CLAMP_TO_EDGE)||( param == GL_REPEAT), "invalid param");
-				static void setTextureParameter(GLenum target)
-				{
-					glTexParameteri(target, GL_TEXTURE_WRAP_S, param);
-					CHECK_GL_ERROR;
-				}
-			};
-		template<GLenum param>
-			struct Wrap_T{
-				static_assert((param == GL_CLAMP_TO_EDGE)||(param == GL_REPEAT), "invalid param");
-				static void setTextureParameter(GLenum target)
-				{
-					glTexParameteri(target, GL_TEXTURE_WRAP_T, param);
-					CHECK_GL_ERROR;
-				}
-			};
-		template<GLenum param>
-			struct Wrap_R{
-				static_assert((param == GL_CLAMP_TO_EDGE)||(param == GL_REPEAT), "invalid param");
-				static void setTextureParameter(GLenum target)
-				{
-					glTexParameteri(target, GL_TEXTURE_WRAP_R, param);
-					CHECK_GL_ERROR;
-				}
-			};
-		template<GLenum param>
-			struct Mag_Filter{
-				static_assert((param == GL_NEAREST)||(param == GL_LINEAR), "invalid param");
-				static void setTextureParameter(GLenum target)
-				{
-					glTexParameteri(target, GL_TEXTURE_MAG_FILTER, param);
-					CHECK_GL_ERROR;
-				}
-			};
-		template<GLenum param>
-			struct Min_Filter{
-				static_assert((param == GL_NEAREST)||(param == GL_LINEAR), "invalid param");
-				static void setTextureParameter(GLenum target)
-				{
-					glTexParameteri(target, GL_TEXTURE_MIN_FILTER, param);
-					CHECK_GL_ERROR;
-				}
-			};
-
-
-		//Texture Parameter Helper
-		template<typename First, typename... Args>
-			struct SetParamTraits
-			{
-				inline static void func(GLenum target)
-				{
-					First::setTextureParameter(target);
-					SetParamTraits<Args...>::func(target);
-				}
-			};
-
-		template<typename Last>
-			struct SetParamTraits<Last>
-			{
-				inline static void func(GLenum target)
-				{
-					Last::setTextureParameter(target);
-				}
+	
 			};
 	}
 }

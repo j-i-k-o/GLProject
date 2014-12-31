@@ -107,14 +107,8 @@ int main(int argc, char* argv[])
 
 	Texture<Texture2D> texture;
 	texture.texImage2D("arch-linux-226331.jpg");
+	texture.setParameter<Mag_Filter<GL_LINEAR>, Min_Filter<GL_LINEAR>>();
 
-	texture.bind(0);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	texture.unbind();
 	program.setUniformXt("surftexture", 1);
 
 //	AssimpLoader al("Porsche_911_GT2.obj");

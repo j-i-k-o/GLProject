@@ -2,7 +2,7 @@
 
 #include <GL/glew.h>
 #include <IL/il.h>
-
+#include <IL/ilu.h>
 
 #include <iostream>
 #include <cassert>
@@ -1113,7 +1113,7 @@ namespace jikoLib{
 
 					void setInitParam()
 					{
-						glTexParameteri(TargetType::TEXTURE_TARGET, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+						glTexParameteri(TargetType::TEXTURE_TARGET, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 						glTexParameteri(TargetType::TEXTURE_TARGET, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 						glTexParameteri(TargetType::TEXTURE_TARGET, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 						glTexParameteri(TargetType::TEXTURE_TARGET, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -1208,12 +1208,6 @@ namespace jikoLib{
 							bind();
 							TextureTraits<TargetType, level, int_format, format>::texImage2D(std::forward<Args>(args)...);
 							unbind();
-						}
-
-					template<typename... Args>
-						void setParameter()
-						{
-							SetParamTraits<Args...>::func(TargetType::TEXTURE_TARGET);
 						}
 			};
 
