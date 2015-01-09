@@ -138,10 +138,11 @@ namespace jikoLib{
 					}
 
 				template<typename Allocator_sh>
-					inline void connectAttrib(const ShaderProg<Allocator_sh> &prog, const Mesh3D &mesh, const std::string &vertex_attr, const std::string &normal_attr, const std::string &texcrd_attr)
+					inline void connectAttrib(const ShaderProg<Allocator_sh> &prog, const Mesh3D &mesh, const std::string &vertex_attr, const std::string &normal_attr, const std::string &texcrd_attr = "")
 					{
 						this->connectAttrib(prog, mesh.getVertex(), mesh.getVArray(), vertex_attr);
 						this->connectAttrib(prog, mesh.getNormal(), mesh.getVArray(), normal_attr);
+						if(texcrd_attr != "")
 						this->connectAttrib(prog, mesh.getTexcrd(), mesh.getVArray(), texcrd_attr);
 					}
 
@@ -189,7 +190,13 @@ namespace jikoLib{
 					
 
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename TexTarget, typename TexAlloc, typename vbUsage, typename vbAlloc>
-					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo, const std::vector<std::tuple<Texture<TexTarget, TexAlloc>, std::size_t>> &tex_array)
+					void draw(
+							const VertexArray<varrAlloc> &varray,
+							const ShaderProg<Sp_Alloc> &program,
+							const VertexBuffer<ElementArrayBuffer,
+							vbUsage, vbAlloc> &ibo,
+							const std::vector<std::tuple<Texture<TexTarget, TexAlloc>,
+							std::size_t>> &tex_array)
 					{
 						for (auto&& var : tex_array) {
 							std::get<0>(var).bind(std::get<1>(var));
@@ -203,7 +210,11 @@ namespace jikoLib{
 					}
 
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename TexTarget, typename TexAlloc, typename vbUsage, typename vbAlloc>
-					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ArrayBuffer, vbUsage, vbAlloc> &vbo, const std::vector<std::tuple<Texture<TexTarget, TexAlloc>, std::size_t>> &tex_array)
+					void draw(
+							const VertexArray<varrAlloc> &varray,
+							const ShaderProg<Sp_Alloc> &program,
+							const VertexBuffer<ArrayBuffer, vbUsage, vbAlloc> &vbo,
+							const std::vector<std::tuple<Texture<TexTarget, TexAlloc>, std::size_t>> &tex_array)
 					{
 						for (auto&& var : tex_array) {
 							std::get<0>(var).bind(std::get<1>(var));

@@ -9,6 +9,7 @@
 #include <utility>
 #include <IL/il.h>
 #include <IL/ilu.h>
+#include <cmath>
 
 
 namespace jikoLib
@@ -787,7 +788,10 @@ namespace jikoLib
 
 			};
 
-		//Texture Parameter
+		/**
+		 * Texture parameter
+		 *
+		 */
 		template<GLenum param>
 			struct Wrap_S{
 				static_assert((param == GL_CLAMP_TO_EDGE)||( param == GL_REPEAT), "invalid param");
@@ -835,7 +839,11 @@ namespace jikoLib
 			};
 
 
-		//Texture Parameter Helper
+		/**
+		 * Texture parameter helper
+		 *
+		 */
+
 		template<typename First, typename... Args>
 			struct SetParamTraits
 			{
@@ -854,5 +862,53 @@ namespace jikoLib
 					Last::setTextureParameter(target);
 				}
 			};
+
+		/**
+		 * Mesh Sample
+		 *
+		 */
+
+		// Cube
+		//  
+		
+		/*
+		struct unitCube{
+			constexpr static GLfloat vertex[][3] =
+			{
+				{ 1.0/2.0,  1.0/2.0,  1.0/2.0},
+				{-1.0/2.0,  1.0/2.0,  1.0/2.0},
+				{-1.0/2.0, -1.0/2.0,  1.0/2.0},
+				{ 1.0/2.0, -1.0/2.0,  1.0/2.0},
+				{ 1.0/2.0,  1.0/2.0, -1.0/2.0},
+				{-1.0/2.0,  1.0/2.0, -1.0/2.0},
+				{-1.0/2.0, -1.0/2.0, -1.0/2.0},
+				{ 1.0/2.0, -1.0/2.0, -1.0/2.0},
+			};vertex
+
+			constexpr static GLfloat normal[][3] = 
+			{
+				{ 0.57735,  0.57735,  0.57735},
+				{-0.57735,  0.57735,  0.57735},
+				{-0.57735, -0.57735,  0.57735},
+				{ 0.57735, -0.57735,  0.57735},
+				{ 0.57735,  0.57735, -0.57735},
+				{-0.57735,  0.57735, -0.57735},
+				{-0.57735, -0.57735, -0.57735},
+				{ 0.57735, -0.57735, -0.57735},
+			};
+
+			constexpr static GLshort index[] = 
+			{
+				0,1,2,0,2,3,
+				3,2,6,3,6,7,
+				0,3,7,0,7,4,
+				1,0,4,1,4,5,
+				2,1,5,2,5,6,
+				7,6,5,7,5,4
+			};
+		};
+		*/
+
+		
 	}
 }

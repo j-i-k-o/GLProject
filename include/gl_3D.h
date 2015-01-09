@@ -81,10 +81,17 @@ namespace jikoLib{
 				}
 
 				template<typename T, std::size_t Size_Elem>
-				inline void copyIndex(const T (&ind)[Size_Elem])
-				{
-					index.copyData(ind);
-				}
+					inline void copyData(const T (&vert)[Size_Elem][3], const T (&norm)[Size_Elem][3])
+					{
+						vertex.copyData(vert);
+						normal.copyData(norm);
+					}
+
+				template<typename T, std::size_t Size_Elem>
+					inline void copyIndex(const T (&ind)[Size_Elem])
+					{
+						index.copyData(ind);
+					}
 
 				template<typename T>
 					inline void copyData(const T *vert, const T *norm, const T *tex, std::size_t Size_Elem)
@@ -92,6 +99,13 @@ namespace jikoLib{
 						vertex.copyData(vert, Size_Elem, 3);
 						normal.copyData(norm, Size_Elem, 3);
 						texcrd.copyData( tex, Size_Elem, 2);
+					}
+
+				template<typename T>
+					inline void copyData(const T *vert, const T *norm, std::size_t Size_Elem)
+					{
+						vertex.copyData(vert, Size_Elem, 3);
+						normal.copyData(norm, Size_Elem, 3);
 					}
 
 				template<typename T>
@@ -242,5 +256,160 @@ namespace jikoLib{
 					return this->scene; 
 				}
 		};
+
+		namespace MeshSample{
+			class Cube{
+				private:
+					std::vector<GLfloat> vertex;
+					std::vector<GLfloat> normal;
+					std::vector<GLushort> index;
+
+				public:
+					Cube(GLfloat side)
+					{
+						vertex.reserve(24);
+						normal.reserve(24);
+						index.reserve(36);
+
+						//vertex
+						vertex.push_back(side/2.0);
+						vertex.push_back(side/2.0);
+						vertex.push_back(side/2.0);
+
+						vertex.push_back(-side/2.0);
+						vertex.push_back(side/2.0);
+						vertex.push_back(side/2.0);
+
+						vertex.push_back(-side/2.0);
+						vertex.push_back(-side/2.0);
+						vertex.push_back(side/2.0);
+
+						vertex.push_back(side/2.0);
+						vertex.push_back(-side/2.0);
+						vertex.push_back(side/2.0);
+
+						vertex.push_back(side/2.0);
+						vertex.push_back(side/2.0);
+						vertex.push_back(-side/2.0);
+
+						vertex.push_back(-side/2.0);
+						vertex.push_back(side/2.0);
+						vertex.push_back(-side/2.0);
+
+						vertex.push_back(-side/2.0);
+						vertex.push_back(-side/2.0);
+						vertex.push_back(-side/2.0);
+
+						vertex.push_back(side/2.0);
+						vertex.push_back(-side/2.0);
+						vertex.push_back(-side/2.0);
+
+						//normal
+						normal.push_back(1.0/sqrtf(3.0));
+						normal.push_back(1.0/sqrtf(3.0));
+						normal.push_back(1.0/sqrtf(3.0));
+
+						normal.push_back(-1.0/sqrtf(3.0));
+						normal.push_back(1.0/sqrtf(3.0));
+						normal.push_back(1.0/sqrtf(3.0));
+
+						normal.push_back(-1.0/sqrtf(3.0));
+						normal.push_back(-1.0/sqrtf(3.0));
+						normal.push_back(1.0/sqrtf(3.0));
+
+						normal.push_back(1.0/sqrtf(3.0));
+						normal.push_back(-1.0/sqrtf(3.0));
+						normal.push_back(1.0/sqrtf(3.0));
+
+						normal.push_back(1.0/sqrtf(3.0));
+						normal.push_back(1.0/sqrtf(3.0));
+						normal.push_back(-1.0/sqrtf(3.0));
+
+						normal.push_back(-1.0/sqrtf(3.0));
+						normal.push_back(1.0/sqrtf(3.0));
+						normal.push_back(-1.0/sqrtf(3.0));
+
+						normal.push_back(-1.0/sqrtf(3.0));
+						normal.push_back(-1.0/sqrtf(3.0));
+						normal.push_back(-1.0/sqrtf(3.0));
+
+						normal.push_back(1.0/sqrtf(3.0));
+						normal.push_back(-1.0/sqrtf(3.0));
+						normal.push_back(-1.0/sqrtf(3.0));
+
+						index.push_back(0);
+						index.push_back(1);
+						index.push_back(2);
+						index.push_back(0);
+						index.push_back(2);
+						index.push_back(3);
+
+						index.push_back(3);
+						index.push_back(2);
+						index.push_back(6);
+						index.push_back(3);
+						index.push_back(6);
+						index.push_back(7);
+
+						index.push_back(0);
+						index.push_back(3);
+						index.push_back(7);
+						index.push_back(0);
+						index.push_back(7);
+						index.push_back(4);
+
+						index.push_back(1);
+						index.push_back(0);
+						index.push_back(4);
+						index.push_back(1);
+						index.push_back(4);
+						index.push_back(5);
+
+						index.push_back(2);
+						index.push_back(1);
+						index.push_back(5);
+						index.push_back(2);
+						index.push_back(5);
+						index.push_back(6);
+
+						index.push_back(7);
+						index.push_back(6);
+						index.push_back(5);
+						index.push_back(7);
+						index.push_back(5);
+						index.push_back(4);
+					}
+
+					inline const GLfloat* getVertex()
+					{
+						return vertex.data();
+					}
+
+					inline const GLfloat* getNormal()
+					{
+						return normal.data();
+					}
+
+					inline const GLushort* getIndex()
+					{
+						return index.data();
+					}
+
+					inline std::size_t getNumVertex()
+					{
+						return vertex.size();
+					}
+
+					inline std::size_t getNumNormal()
+					{
+						return normal.size();
+					}
+
+					inline std::size_t getNumIndex()
+					{
+						return index.size();
+					}
+			};
+		}
 	}
 }

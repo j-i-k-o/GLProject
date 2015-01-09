@@ -592,28 +592,6 @@ namespace jikoLib{
 					}
 
 
-					/*
-					 * invalid code
-					 *
-					 template<typename T,std::size_t Size_Elem, std::size_t Dim>
-					 VertexBuffer& operator<<(const std::array<std::array<T, Dim>, Size_Elem> &array)
-					// Set Array for std::array 
-					{
-					static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-					static_assert( Dim <= 4, "Invalid dimension" );
-					static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
-					static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-					"IBO array type must be GLushort or GLuint or GLubyte");
-					bind();
-					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
-					CHECK_GL_ERROR;
-					DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-					setSizeElem_Dim_Type<T>(Size_Elem, Dim);
-					return *this;
-					}
-
-*/
-
 					template<typename T,std::size_t Size_Elem, std::size_t Dim>
 						VertexBuffer& operator<<(const T (&array)[Size_Elem][Dim])
 						// Set Array for raw array
@@ -676,71 +654,7 @@ namespace jikoLib{
 							this << array;
 						}
 
-					/*
-					template<typename T>
-						void copyData(const T* array, std::size_t Size_Elem)
-						{
-							static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-							static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-									"IBO array type must be GLushort or GLuint or GLubyte");
-							bind();
-							glBufferData(TargetType::BUFFER_TARGET, Size_Elem*sizeof(T), array, UsageType::BUFFER_USAGE);
-							CHECK_GL_ERROR;
-							DEBUG_OUT("allocate "<< Size_Elem*sizeof(T) <<" B success! buffer id is " << buffer_id);
-							setSizeElem_Dim_Type<T>(Size_Elem, 1);
-						}
-						*/
-
-
-					/*
-					 *
-					 * invalid code
-					 *
-					 template<typename T>
-					 VertexBuffer& operator<<(const std::vector<std::vector<T>> &array)
-					// Set Array for std::vector
-					{
-					static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-					static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-					"IBO array type must be GLushort or GLuint or GLubyte");
-					std::size_t Size_Elem = 0;
-					std::size_t Dim = 0;
-					bool first = true;
-					if((Size_Elem = array.size()) == 0)
-					{
-					std::cerr << "Zero Elem! --did nothing." << std::endl;
-					return *this;
-					}
-					for (auto&& sub_array : array) {
-					if(first)
-					{
-					first = false;
-					Dim = sub_array.size();
-					}
-					else
-					{
-					if(Dim != sub_array.size())
-					{
-					std::cerr << "diffelent length array! --did nothing." << std::endl;
-					return *this;
-					}
-					}
-					if(sub_array.size() > 4)
-					{
-					std::cerr << "Invalid dimension! --did nothing" << std::endl;
-					return *this;
-					}
-					}
-					bind();
-					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array.data(), UsageType::BUFFER_USAGE);
-					CHECK_GL_ERROR;
-					DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-					setSizeElem_Dim_Type<T>(Size_Elem, Dim);
-					return *this;
-					}
-
-*/
-
+					
 					VertexBuffer operator+(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 						//merge buffer data
 					{
