@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 	program.setUniformXt("material.ambient", 0.3f, 0.25f, 0.4f, 1.0f);
 	program.setUniformXt("material.diffuse", 0.75f, 0.0f, 1.0f, 1.0f);
 	program.setUniformXt("material.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("material.shininess", 5000.0f);
+	program.setUniformXt("material.shininess", 500.0f);
 
 	bool quit = false;
 	SDL_Event e;
