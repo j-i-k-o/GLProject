@@ -276,6 +276,11 @@ namespace jikoLib{
 						return normal.data();
 					}
 
+					inline const GLfloat* getTexcrd()
+					{
+						return texcrd.data();
+					}
+
 					inline const GLushort* getIndex()
 					{
 						return index.data();
@@ -283,12 +288,17 @@ namespace jikoLib{
 
 					inline std::size_t getNumVertex()
 					{
-						return vertex.size();
+						return vertex.size()/3;
 					}
 
 					inline std::size_t getNumNormal()
 					{
-						return normal.size();
+						return normal.size()/3;
+					}
+
+					inline std::size_t getNumTexcrd()
+					{
+						return texcrd.size()/2;
 					}
 
 					inline std::size_t getNumIndex()
@@ -305,7 +315,7 @@ namespace jikoLib{
 					{
 						vertex.reserve(108);
 						normal.reserve(108);
-						texcrd.reserve(108);
+						texcrd.reserve(72);
 
 						//forward
 						vertex.push_back(-side/2);
