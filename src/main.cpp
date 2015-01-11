@@ -69,16 +69,15 @@ int main(int argc, char* argv[])
 	Mesh3D cube;
 	MeshSample::Cube cubeHelper(1.0);
 	cube.copyData(cubeHelper.getVertex(), cubeHelper.getNormal(), cubeHelper.getNumVertex());
-	cube.copyIndex(cubeHelper.getIndex(), cubeHelper.getNumIndex());
 
 	Camera camera;
-	camera.setPos(glm::vec3(3.0f, 3.0f, 4.0f));
+	camera.setPos(glm::vec3(3.0f, 3.0f, 3.0f));
 	camera.setDrct(glm::vec3(0.0f, 0.0f, 0.0f));
+	camera.setFar(100.0f);
 
 	int width, height;
 	SDL_GetWindowSize(window, &width, &height);
 	camera.setAspect(width, height);
-	camera.setFovy(3.141592/6.0);
 
 	obj.connectAttrib(program, cube.getNormal(), cube.getVArray(), "norm");
 	obj.connectAttrib(program, cube.getVertex(), cube.getVArray(), "vertex");
@@ -90,12 +89,12 @@ int main(int argc, char* argv[])
 	program.setUniformXt("light.ambient", 0.25f, 0.25f, 0.25f, 1.0f);
 	program.setUniformXt("light.diffuse", 1.0f, 1.0f, 1.0f, 1.0f);
 	program.setUniformXt("light.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("light.position", 0.0f, 8.0f, 0.0f);
+	program.setUniformXt("light.position", 0.0f, 0.6f, 0.0f);
 
 	program.setUniformXt("material.ambient", 0.3f, 0.25f, 0.4f, 1.0f);
 	program.setUniformXt("material.diffuse", 0.75f, 0.0f, 1.0f, 1.0f);
 	program.setUniformXt("material.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("material.shininess", 5000.0f);
+	program.setUniformXt("material.shininess", 50.0f);
 
 	bool quit = false;
 	SDL_Event e;
@@ -113,7 +112,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		CHECK_GL_ERROR;
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glEnable(GL_CULL_FACE);
 		obj.draw(cube, program);

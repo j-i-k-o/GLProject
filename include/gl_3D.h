@@ -174,7 +174,7 @@ namespace jikoLib{
 					:pos(0.0f, 0.0f, 0.0f),
 					drct(1.0f, 0.0f, 0.0f),
 					up(0.0f, 1.0f, 0.0f),
-					fovy(M_PI/4.0),
+					fovy(M_PI/6.0),
 					aspect(1.0f),
 					_near(0.1f),
 					_far(10.0f) {}
@@ -258,128 +258,14 @@ namespace jikoLib{
 		};
 
 		namespace MeshSample{
-			class Cube{
-				private:
+
+			class AbstractShape{
+				protected:
 					std::vector<GLfloat> vertex;
 					std::vector<GLfloat> normal;
+					std::vector<GLfloat> texcrd;
 					std::vector<GLushort> index;
-
 				public:
-					Cube(GLfloat side)
-					{
-						vertex.reserve(24);
-						normal.reserve(24);
-						index.reserve(36);
-
-						//vertex
-						vertex.push_back(side/2.0);
-						vertex.push_back(side/2.0);
-						vertex.push_back(side/2.0);
-
-						vertex.push_back(-side/2.0);
-						vertex.push_back(side/2.0);
-						vertex.push_back(side/2.0);
-
-						vertex.push_back(-side/2.0);
-						vertex.push_back(-side/2.0);
-						vertex.push_back(side/2.0);
-
-						vertex.push_back(side/2.0);
-						vertex.push_back(-side/2.0);
-						vertex.push_back(side/2.0);
-
-						vertex.push_back(side/2.0);
-						vertex.push_back(side/2.0);
-						vertex.push_back(-side/2.0);
-
-						vertex.push_back(-side/2.0);
-						vertex.push_back(side/2.0);
-						vertex.push_back(-side/2.0);
-
-						vertex.push_back(-side/2.0);
-						vertex.push_back(-side/2.0);
-						vertex.push_back(-side/2.0);
-
-						vertex.push_back(side/2.0);
-						vertex.push_back(-side/2.0);
-						vertex.push_back(-side/2.0);
-
-						//normal
-						normal.push_back(1.0/sqrtf(3.0));
-						normal.push_back(1.0/sqrtf(3.0));
-						normal.push_back(1.0/sqrtf(3.0));
-
-						normal.push_back(-1.0/sqrtf(3.0));
-						normal.push_back(1.0/sqrtf(3.0));
-						normal.push_back(1.0/sqrtf(3.0));
-
-						normal.push_back(-1.0/sqrtf(3.0));
-						normal.push_back(-1.0/sqrtf(3.0));
-						normal.push_back(1.0/sqrtf(3.0));
-
-						normal.push_back(1.0/sqrtf(3.0));
-						normal.push_back(-1.0/sqrtf(3.0));
-						normal.push_back(1.0/sqrtf(3.0));
-
-						normal.push_back(1.0/sqrtf(3.0));
-						normal.push_back(1.0/sqrtf(3.0));
-						normal.push_back(-1.0/sqrtf(3.0));
-
-						normal.push_back(-1.0/sqrtf(3.0));
-						normal.push_back(1.0/sqrtf(3.0));
-						normal.push_back(-1.0/sqrtf(3.0));
-
-						normal.push_back(-1.0/sqrtf(3.0));
-						normal.push_back(-1.0/sqrtf(3.0));
-						normal.push_back(-1.0/sqrtf(3.0));
-
-						normal.push_back(1.0/sqrtf(3.0));
-						normal.push_back(-1.0/sqrtf(3.0));
-						normal.push_back(-1.0/sqrtf(3.0));
-
-						index.push_back(0);
-						index.push_back(1);
-						index.push_back(2);
-						index.push_back(0);
-						index.push_back(2);
-						index.push_back(3);
-
-						index.push_back(3);
-						index.push_back(2);
-						index.push_back(6);
-						index.push_back(3);
-						index.push_back(6);
-						index.push_back(7);
-
-						index.push_back(0);
-						index.push_back(3);
-						index.push_back(7);
-						index.push_back(0);
-						index.push_back(7);
-						index.push_back(4);
-
-						index.push_back(1);
-						index.push_back(0);
-						index.push_back(4);
-						index.push_back(1);
-						index.push_back(4);
-						index.push_back(5);
-
-						index.push_back(2);
-						index.push_back(1);
-						index.push_back(5);
-						index.push_back(2);
-						index.push_back(5);
-						index.push_back(6);
-
-						index.push_back(7);
-						index.push_back(6);
-						index.push_back(5);
-						index.push_back(7);
-						index.push_back(5);
-						index.push_back(4);
-					}
-
 					inline const GLfloat* getVertex()
 					{
 						return vertex.data();
@@ -409,6 +295,227 @@ namespace jikoLib{
 					{
 						return index.size();
 					}
+			};
+
+			class Cube : public AbstractShape{
+				private:
+
+				public:
+					Cube(GLfloat side)
+					{
+						vertex.reserve(108);
+						normal.reserve(108);
+						texcrd.reserve(108);
+
+						//forward
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						//back
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						//right
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						//left
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						//up
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						//down
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(0.0f);
+							normal.push_back(0.0f);
+							normal.push_back(1.0f);
+						}
+						
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(0.0f);
+							normal.push_back(0.0f);
+							normal.push_back(-1.0f);
+						}
+						
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(1.0f);
+							normal.push_back(0.0f);
+							normal.push_back(0.0f);
+						}
+						
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(-1.0f);
+							normal.push_back(0.0f);
+							normal.push_back(0.0f);
+						}
+						
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(0.0f);
+							normal.push_back(1.0f);
+							normal.push_back(0.0f);
+						}
+						
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(0.0f);
+							normal.push_back(-1.0f);
+							normal.push_back(0.0f);
+						}
+
+						for(int i = 0; i < 6; i++)
+						{
+							texcrd.push_back(0.0f);
+							texcrd.push_back(0.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(0.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(0.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(0.0f);
+							texcrd.push_back(0.0f);
+						}
+					}
+					
 			};
 		}
 	}
