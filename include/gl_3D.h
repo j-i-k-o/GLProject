@@ -18,7 +18,7 @@
 
 namespace jikoLib{
 	namespace GLLib{
-		
+
 		class Mesh3D{
 			private:
 				VBO vertex;
@@ -35,8 +35,8 @@ namespace jikoLib{
 
 				Mesh3D()
 					:pos(0.0f, 0.0f, 0.0f),
-					 rot(1.0f, 0.0f, 0.0f, 0.0f),
-					 scale(1.0f, 1.0f, 1.0f)  {}
+					rot(1.0f, 0.0f, 0.0f, 0.0f),
+					scale(1.0f, 1.0f, 1.0f)  {}
 
 				inline const VBO& getVertex() const
 				{
@@ -73,12 +73,12 @@ namespace jikoLib{
 				}
 
 				template<typename T, std::size_t Size_Elem>
-				inline void copyData(const T (&vert)[Size_Elem][3], const T (&norm)[Size_Elem][3], const T (&tex)[Size_Elem][2])
-				{
-					vertex.copyData(vert);
-					normal.copyData(norm);
-					texcrd.copyData(tex );
-				}
+					inline void copyData(const T (&vert)[Size_Elem][3], const T (&norm)[Size_Elem][3], const T (&tex)[Size_Elem][2])
+					{
+						vertex.copyData(vert);
+						normal.copyData(norm);
+						texcrd.copyData(tex );
+					}
 
 				template<typename T, std::size_t Size_Elem>
 					inline void copyData(const T (&vert)[Size_Elem][3], const T (&norm)[Size_Elem][3])
@@ -244,12 +244,12 @@ namespace jikoLib{
 			public:
 
 				AssimpLoader(const std::string &path) :scene(importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs))
+			{
+				if(scene == nullptr)
 				{
-					if(scene == nullptr)
-					{
-						std::cerr << "Assimp ReadFileError: " << importer.GetErrorString() << std::endl;
-					}
-				};
+					std::cerr << "Assimp ReadFileError: " << importer.GetErrorString() << std::endl;
+				}
+			};
 
 				inline const aiScene* getScene() const
 				{
@@ -473,35 +473,35 @@ namespace jikoLib{
 							normal.push_back(0.0f);
 							normal.push_back(1.0f);
 						}
-						
+
 						for(int i = 0; i < 6; i++)
 						{
 							normal.push_back(0.0f);
 							normal.push_back(0.0f);
 							normal.push_back(-1.0f);
 						}
-						
+
 						for(int i = 0; i < 6; i++)
 						{
 							normal.push_back(1.0f);
 							normal.push_back(0.0f);
 							normal.push_back(0.0f);
 						}
-						
+
 						for(int i = 0; i < 6; i++)
 						{
 							normal.push_back(-1.0f);
 							normal.push_back(0.0f);
 							normal.push_back(0.0f);
 						}
-						
+
 						for(int i = 0; i < 6; i++)
 						{
 							normal.push_back(0.0f);
 							normal.push_back(1.0f);
 							normal.push_back(0.0f);
 						}
-						
+
 						for(int i = 0; i < 6; i++)
 						{
 							normal.push_back(0.0f);
@@ -525,7 +525,120 @@ namespace jikoLib{
 							texcrd.push_back(0.0f);
 						}
 					}
-					
+
+			};
+			class Sphere : public AbstractShape
+			{
+				private:
+				public:
+					Sphere(GLfloat radius, int SLICES, int STACKS)
+					{
+						vertex.reserve(SLICES*(STACKS-1)*18);
+						normal.reserve(SLICES*(STACKS-1)*18);
+						texcrd.reserve(SLICES*(STACKS-1)*12);
+
+						for(int i = 0; i < SLICES; i++)
+						{
+							vertex.push_back(0);
+							vertex.push_back(0);
+							vertex.push_back(radius);
+							
+							texcrd.push_back(0.5f);
+							texcrd.push_back(1.0f);
+
+							vertex.push_back(radius*sin(M_PI*(GLfloat)(1)/STACKS)*cos(2*M_PI*(GLfloat)(i)/SLICES));
+							vertex.push_back(radius*sin(M_PI*(GLfloat)(1)/STACKS)*sin(2*M_PI*(GLfloat)(i)/SLICES));
+							vertex.push_back(radius*cos(M_PI*(GLfloat)(1)/STACKS));
+
+							texcrd.push_back(0.0f);
+							texcrd.push_back(0.0f);
+
+							vertex.push_back(radius*sin(M_PI*(GLfloat)(1)/STACKS)*cos(2*M_PI*(GLfloat)(i+1)/SLICES));
+							vertex.push_back(radius*sin(M_PI*(GLfloat)(1)/STACKS)*sin(2*M_PI*(GLfloat)(i+1)/SLICES));
+							vertex.push_back(radius*cos(M_PI*(GLfloat)(1)/STACKS));
+
+							texcrd.push_back(1.0f);
+							texcrd.push_back(0.0f);
+						}
+
+						for(int i=0; i<SLICES; i++)
+						{
+							for(int j=1; j<STACKS-1; j++)
+							{
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*cos(2 * M_PI*(GLfloat)(i + 1) / SLICES));
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*sin(2 * M_PI*(GLfloat)(i + 1) / SLICES));
+								vertex.push_back(radius*cos(M_PI * (GLfloat)(j) / STACKS));
+
+								texcrd.push_back(1.0f);
+								texcrd.push_back(1.0f);
+
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*cos(2 * M_PI*(GLfloat)(i) / SLICES));
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*sin(2 * M_PI*(GLfloat)(i) / SLICES));
+								vertex.push_back(radius*cos(M_PI * (GLfloat)(j) / STACKS));
+
+								texcrd.push_back(0.0f);
+								texcrd.push_back(1.0f);
+
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i) / SLICES));
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i) / SLICES));
+								vertex.push_back(radius*cos(M_PI * (GLfloat)(j + 1) / STACKS));
+
+								texcrd.push_back(0.0f);
+								texcrd.push_back(0.0f);
+
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*cos(2 * M_PI*(GLfloat)(i + 1) / SLICES));
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*sin(2 * M_PI*(GLfloat)(i + 1) / SLICES));
+								vertex.push_back(radius*cos(M_PI * (GLfloat)(j) / STACKS));
+
+								texcrd.push_back(1.0f);
+								texcrd.push_back(1.0f);
+
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i) / SLICES));
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i) / SLICES));
+								vertex.push_back(radius*cos(M_PI * (GLfloat)(j + 1) / STACKS));
+
+								texcrd.push_back(0.0f);
+								texcrd.push_back(0.0f);
+
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i + 1) / SLICES));
+								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i + 1) / SLICES));
+								vertex.push_back(radius*cos(M_PI * (GLfloat)(j + 1) / STACKS));
+
+								texcrd.push_back(1.0f);
+								texcrd.push_back(0.0f);
+							}
+						}
+
+						for (int i = 0; i < SLICES; i++)
+						{
+							vertex.push_back(radius*sin(M_PI * (GLfloat)(STACKS - 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i + 1) / SLICES));
+							vertex.push_back(radius*sin(M_PI * (GLfloat)(STACKS - 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i + 1) / SLICES));
+							vertex.push_back(radius*cos(M_PI * (GLfloat)(STACKS - 1) / STACKS));
+
+							texcrd.push_back(1.0f);
+							texcrd.push_back(1.0f);
+
+							vertex.push_back(radius*sin(M_PI * (GLfloat)(STACKS - 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i) / SLICES));
+							vertex.push_back(radius*sin(M_PI * (GLfloat)(STACKS - 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i) / SLICES));
+							vertex.push_back(radius*cos(M_PI * (GLfloat)(STACKS - 1) / STACKS));
+							
+							texcrd.push_back(0.0f);
+							texcrd.push_back(1.0f);
+
+							vertex.push_back(0);
+							vertex.push_back(0);
+							vertex.push_back(-radius);
+
+							texcrd.push_back(0.5f);
+							texcrd.push_back(0.0f);
+						}
+
+						for(auto && v : vertex)
+						{
+							normal.push_back(v/radius);
+						}
+
+					}
 			};
 		}
 	}

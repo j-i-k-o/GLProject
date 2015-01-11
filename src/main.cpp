@@ -70,12 +70,14 @@ int main(int argc, char* argv[])
 	texture.texImage2D("texture.jpg");
 
 	Mesh3D cube;
+	MeshSample::Sphere sphereHelper(1.0, 30, 30);
 	MeshSample::Cube cubeHelper(1.0);
 	cube.copyData(cubeHelper.getVertex(), cubeHelper.getNormal(), cubeHelper.getTexcrd(), cubeHelper.getNumVertex());
 
 	Camera camera;
-	camera.setPos(glm::vec3(3.0f, 3.0f, 3.0f));
+	camera.setPos(glm::vec3(3.0f, 3.0f, 0.0f));
 	camera.setDrct(glm::vec3(0.0f, 0.0f, 0.0f));
+	camera.setUp(glm::vec3(0.0f, 1.0f, 0.0f));
 	camera.setFar(10.0f);
 
 	int width, height;
@@ -93,12 +95,12 @@ int main(int argc, char* argv[])
 	program.setUniformXt("light.ambient", 0.25f, 0.25f, 0.25f, 1.0f);
 	program.setUniformXt("light.diffuse", 1.0f, 1.0f, 1.0f, 1.0f);
 	program.setUniformXt("light.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("light.position", 0.0f, 0.6f, 0.0f);
+	program.setUniformXt("light.position", -2.0f, 1.6f, 0.0f);
 
 	program.setUniformXt("material.ambient", 0.3f, 0.25f, 0.4f, 1.0f);
 	program.setUniformXt("material.diffuse", 0.75f, 0.0f, 1.0f, 1.0f);
 	program.setUniformXt("material.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("material.shininess", 50.0f);
+	program.setUniformXt("material.shininess", 30.0f);
 
 	program.setUniformXt("textureobj", 0);
 
@@ -122,7 +124,7 @@ int main(int argc, char* argv[])
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		texture.bind(0);
+		//texture.bind(0);
 		obj.draw(cube, program);
 		texture.unbind();
 		SDL_GL_SwapWindow( window );
