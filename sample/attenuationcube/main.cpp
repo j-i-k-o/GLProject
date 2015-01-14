@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
 
 	//SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-	SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1200, 800, SDL_WINDOW_OPENGL);
+	SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 400, 300, SDL_WINDOW_OPENGL);
 	if(window == NULL)
 	{
 		std::cerr << "Window could not be created!: " << SDL_GetError() << std::endl;
@@ -68,68 +68,53 @@ int main(int argc, char* argv[])
 
 	Texture<Texture2D> texture;
 	texture.texImage2D("texture.jpg");
-	texture.setParameter<Wrap_S<GL_REPEAT>, Wrap_T<GL_REPEAT>, Wrap_R<GL_REPEAT>, Mag_Filter<GL_NEAREST>, Min_Filter<GL_NEAREST>>();
 
-	GLfloat floor_vertex[][3] = 
-	{
-		{ 100.0f,  100.0f, 0.0f},
-		{-100.0f,  100.0f, 0.0f},
-		{-100.0f, -100.0f, 0.0f},
-		{ 100.0f, -100.0f, 0.0f}
-	};
+	Mesh3D cube;
+	MeshSample::Sphere sphereHelper(1.0, 30, 30);
+	MeshSample::Cube cubeHelper(1.0);
+	cube.copyData(cubeHelper.getVertex(), cubeHelper.getNormal(), cubeHelper.getTexcrd(), cubeHelper.getNumVertex());
 
-	const GLfloat floor_normal[][3] = 
-	{
-		{0.0f, 0.0f, 1.0f},
-		{0.0f, 0.0f, 1.0f},
-		{0.0f, 0.0f, 1.0f},
-		{0.0f, 0.0f, 1.0f}
-	};
-
-	const GLfloat floor_texcrd[][2] = 
-	{
-		{50.0f, 50.0f},
-		{0.0f, 50.0f},
-		{0.0f, 0.0f},
-		{50.0f, 0.0f}
-	};
-
-	const GLushort floor_index[] = 
-	{
-		0,1,2,0,2,3
-	};
-
-	Mesh3D floor_mesh;
-	floor_mesh.copyData(floor_vertex, floor_normal, floor_texcrd);
-	floor_mesh.copyIndex(floor_index);
 	Camera camera;
-	camera.setPos(glm::vec3(0.0f, 0.0f, 50.0f));
+	camera.setPos(glm::vec3(3.0f, 3.0f, -2.0f));
 	camera.setDrct(glm::vec3(0.0f, 0.0f, 0.0f));
-	camera.setAspect(1200, 800);
-	camera.setFar(1000.0f);
 	camera.setUp(glm::vec3(0.0f, 1.0f, 0.0f));
+	camera.setFar(10.0f);
 
-	obj.connectAttrib(program, floor_mesh, "vertex", "normal", "texcrd");
+	int width, height;
+	SDL_GetWindowSize(window, &width, &height);
+	camera.setAspect(width, height);
 
-	program.setUniformMatrixXtv("model", glm::value_ptr(floor_mesh.getModelMatrix()), 1, 4);
+	obj.connectAttrib(program, cube.getNormal(), cube.getVArray(), "norm");
+	obj.connectAttrib(program, cube.getVertex(), cube.getVArray(), "vertex");
+	obj.connectAttrib(program, cube.getTexcrd(), cube.getVArray(), "texcrd");
+
+	program.setUniformMatrixXtv("model", glm::value_ptr(cube.getModelMatrix()), 1, 4);
 	program.setUniformMatrixXtv("view", glm::value_ptr(camera.getViewMatrix()), 1, 4);
 	program.setUniformMatrixXtv("projection", glm::value_ptr(camera.getProjectionMatrix()), 1, 4);
 
 	program.setUniformXt("light.ambient", 0.25f, 0.25f, 0.25f, 1.0f);
 	program.setUniformXt("light.diffuse", 1.0f, 1.0f, 1.0f, 1.0f);
 	program.setUniformXt("light.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("light.position", 10.0f, 10.0f, 10.0f);
 
-	program.setUniformXt("material.ambient", 0.3f, 0.25f, 0.4f, 1.0f);
+	program.setUniformXt("material.ambient", 0.3f, 0.0f, 0.4f, 1.0f);
 	program.setUniformXt("material.diffuse", 0.75f, 0.0f, 1.0f, 1.0f);
 	program.setUniformXt("material.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("material.shininess", 32.0f);
+	program.setUniformXt("material.shininess", 3.0f);
 
 	program.setUniformXt("attenuation.constant", 0.0f);
-	program.setUniformXt("attenuation.linear", 1.0f);
-	program.setUniformXt("attenuation.quadratic", 0.0f);
+	program.setUniformXt("attenuation.linear", 0.0f);
+	program.setUniformXt("attenuation.quadratic", 0.075f);
 
 	program.setUniformXt("textureobj", 0);
+
+	int poyo[] =
+	{
+		2,
+		3,
+		4,
+		5,
+		6
+	};
 
 	bool quit = false;
 	SDL_Event e;
@@ -151,8 +136,12 @@ int main(int argc, char* argv[])
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		texture.bind(0);
-		obj.draw(floor_mesh, program);
+		//texture.bind(0);
+		program.setUniformXt("light.position", 0.0f, 0.7f, 0.0f);
+		obj.draw(cube, program);
+		program.setUniformXt("light.position", 0.0f, 0.7f, 0.0f);
+		obj.draw(cube, program);
+		texture.unbind();
 		SDL_GL_SwapWindow( window );
 	}
 

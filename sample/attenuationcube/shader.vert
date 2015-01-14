@@ -1,7 +1,7 @@
 R"(
 #version 120
 
-attribute vec3 normal;
+attribute vec3 norm;
 attribute vec3 vertex;
 attribute vec2 texcrd;
 
@@ -19,7 +19,7 @@ varying mat4 Projection;
 
 void main()
 {
-	Normal = normal;
+	Normal = norm;
 	Vertex = vertex;
 	Texcrd = texcrd;
 	Model = model;

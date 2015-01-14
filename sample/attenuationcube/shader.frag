@@ -15,6 +15,8 @@ struct Light{
 	vec3 position;
 };
 
+uniform Light light;
+
 struct Material{
 	vec4 ambient;
 	vec4 diffuse;
@@ -28,8 +30,6 @@ struct Attenuation{
 	float quadratic;
 };
 
-
-uniform Light light;
 uniform Material material;
 uniform Attenuation attenuation;
 
@@ -54,6 +54,6 @@ void main()
 	}
 	vec4 specular = specularLighting*light.specular*material.specular;
 	vec4 texcolor = texture2D(textureobj, Texcrd);
-	gl_FragColor = (ambient + diffuse + specular)*(1.0/(attenuation.constant+attenuation.linear*length(L-P)+attenuation.quadratic*length(L-P)*length(L-P)))+texture2D(textureobj, Texcrd);
+	gl_FragColor = (ambient + diffuse + specular)*(1.0/(attenuation.constant+attenuation.linear*length(L-P)+attenuation.quadratic*length(L-P)*length(L-P)));
 }
 )"
