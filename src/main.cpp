@@ -88,10 +88,10 @@ int main(int argc, char* argv[])
 
 	const GLfloat floor_texcrd[][2] = 
 	{
-		{50.0f, 50.0f},
-		{0.0f, 50.0f},
+		{10.0f, 10.0f},
+		{0.0f, 10.0f},
 		{0.0f, 0.0f},
-		{50.0f, 0.0f}
+		{10.0f, 0.0f}
 	};
 
 	const GLushort floor_index[] = 
@@ -102,23 +102,27 @@ int main(int argc, char* argv[])
 	Mesh3D floor_mesh;
 	floor_mesh.copyData(floor_vertex, floor_normal, floor_texcrd);
 	floor_mesh.copyIndex(floor_index);
+
+	Mesh3D cube_mesh;
+	MeshSample::Cube cubehelper(10.0);
+	cube_mesh.copyData(cubehelper.getVertex(), cubehelper.getNormal(), cubehelper.getTexcrd(), cubehelper.getNumVertex());
+	cube_mesh.setPos(glm::vec3(0.0f, 0.0f, 5.0f));
+
 	Camera camera;
-	camera.setPos(glm::vec3(0.0f, 0.0f, 50.0f));
-	camera.setDrct(glm::vec3(0.0f, 0.0f, 0.0f));
+	camera.setPos(glm::vec3(-40.0f, -40.0f, 13.0f));
+	camera.setDrct(glm::vec3(50.0f, 50.0f, 0.0f));
 	camera.setAspect(1200, 800);
 	camera.setFar(1000.0f);
-	camera.setUp(glm::vec3(0.0f, 1.0f, 0.0f));
+	camera.setUp(glm::vec3(0.0f, 0.0f, 1.0f));
 
-	obj.connectAttrib(program, floor_mesh, "vertex", "normal", "texcrd");
 
-	program.setUniformMatrixXtv("model", glm::value_ptr(floor_mesh.getModelMatrix()), 1, 4);
 	program.setUniformMatrixXtv("view", glm::value_ptr(camera.getViewMatrix()), 1, 4);
 	program.setUniformMatrixXtv("projection", glm::value_ptr(camera.getProjectionMatrix()), 1, 4);
 
-	program.setUniformXt("light.ambient", 0.25f, 0.25f, 0.25f, 1.0f);
+	program.setUniformXt("light.ambient", 0.75f, 0.75f, 0.75f, 1.0f);
 	program.setUniformXt("light.diffuse", 1.0f, 1.0f, 1.0f, 1.0f);
 	program.setUniformXt("light.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("light.position", 10.0f, 10.0f, 10.0f);
+	program.setUniformXt("light.position", -1.0f, -1.0f, 10.0f);
 
 	program.setUniformXt("material.ambient", 0.3f, 0.25f, 0.4f, 1.0f);
 	program.setUniformXt("material.diffuse", 0.75f, 0.0f, 1.0f, 1.0f);
@@ -126,8 +130,8 @@ int main(int argc, char* argv[])
 	program.setUniformXt("material.shininess", 32.0f);
 
 	program.setUniformXt("attenuation.constant", 0.0f);
-	program.setUniformXt("attenuation.linear", 1.0f);
-	program.setUniformXt("attenuation.quadratic", 0.0f);
+	program.setUniformXt("attenuation.linear", 0.0f);
+	program.setUniformXt("attenuation.quadratic", 0.05f);
 
 	program.setUniformXt("textureobj", 0);
 
@@ -151,8 +155,14 @@ int main(int argc, char* argv[])
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		obj.connectAttrib(program, floor_mesh, "vertex", "normal", "texcrd");
+		program.setUniformMatrixXtv("model", glm::value_ptr(floor_mesh.getModelMatrix()), 1, 4);
 		texture.bind(0);
 		obj.draw(floor_mesh, program);
+		obj.connectAttrib(program, cube_mesh, "vertex", "normal", "texcrd");
+		program.setUniformMatrixXtv("model", glm::value_ptr(cube_mesh.getModelMatrix()), 1, 4);
+		texture.bind(0);
+		obj.draw(cube_mesh, program);
 		SDL_GL_SwapWindow( window );
 	}
 

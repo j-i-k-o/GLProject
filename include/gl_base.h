@@ -593,25 +593,25 @@ namespace jikoLib{
 
 
 					/*
-					template<typename T,std::size_t Size_Elem, std::size_t Dim>
+						template<typename T,std::size_t Size_Elem, std::size_t Dim>
 						VertexBuffer& operator<<(const T (&array)[Size_Elem][Dim])
-						// Set Array for raw array
-						{
-							static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-							static_assert( Dim <= 4, "Invalid dimension" );
-							static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
-							static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-									"IBO array type must be GLushort or GLuint or GLubyte");
-							bind();
-							glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array, UsageType::BUFFER_USAGE);
-							CHECK_GL_ERROR;
-							DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-							setSizeElem_Dim_Type<T>(Size_Elem, Dim);
-							unbind();
-							return *this;
-						}
+					// Set Array for raw array
+					{
+					static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+					static_assert( Dim <= 4, "Invalid dimension" );
+					static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
+					static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
+					"IBO array type must be GLushort or GLuint or GLubyte");
+					bind();
+					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array, UsageType::BUFFER_USAGE);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
+					setSizeElem_Dim_Type<T>(Size_Elem, Dim);
+					unbind();
+					return *this;
+					}
 
-						*/
+*/
 
 					template<typename T>
 						void copyData(const T* array, std::size_t Size_Elem, std::size_t Dim = 1)
@@ -643,25 +643,25 @@ namespace jikoLib{
 							unbind();
 						}
 
-				/*	
-					template<typename T, std::size_t Size_Elem>
+					/*	
+						template<typename T, std::size_t Size_Elem>
 						VertexBuffer& operator<<(const T (&array)[Size_Elem])
-						//Set Array for raw array
-						{
-							static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-							static_assert( (Size_Elem != 0), "Zero Elem" );
-							static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-									"IBO array type must be GLushort or GLuint or GLubyte");
-							bind();
-							glBufferData(TargetType::BUFFER_TARGET, Size_Elem*sizeof(T), array, UsageType::BUFFER_USAGE);
-							CHECK_GL_ERROR;
-							DEBUG_OUT("allocate "<< Size_Elem*sizeof(T) <<" B success! buffer id is " << buffer_id);
-							setSizeElem_Dim_Type<T>(Size_Elem, 1);
-							unbind();
-							return *this;
-						}
+					//Set Array for raw array
+					{
+					static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
+					static_assert( (Size_Elem != 0), "Zero Elem" );
+					static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
+					"IBO array type must be GLushort or GLuint or GLubyte");
+					bind();
+					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*sizeof(T), array, UsageType::BUFFER_USAGE);
+					CHECK_GL_ERROR;
+					DEBUG_OUT("allocate "<< Size_Elem*sizeof(T) <<" B success! buffer id is " << buffer_id);
+					setSizeElem_Dim_Type<T>(Size_Elem, 1);
+					unbind();
+					return *this;
+					}
 
-						*/
+*/
 
 					template<typename T, std::size_t Size_Elem>
 						inline void copyData(const T (&array)[Size_Elem])
@@ -678,7 +678,7 @@ namespace jikoLib{
 							unbind();
 						}
 
-					
+
 					VertexBuffer operator+(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 						//merge buffer data
 					{
@@ -1040,6 +1040,7 @@ namespace jikoLib{
 					}
 			};
 
+		//texture
 
 		template<typename TargetType, typename Allocator = GLAllocator<Alloc_Texture>> 
 			class Texture
@@ -1157,6 +1158,174 @@ namespace jikoLib{
 						}
 			};
 
+		//framebuffer
+
+		template<typename TargetType = ReadDrawFrameBuffer, typename Allocator = GLAllocator<Alloc_FrameBuffer>>
+			class FrameBuffer{
+				private:
+					GLuint framebuffer_id;
+					Allocator a;
+
+				public:
+					inline void bind() const
+					{
+						glBindFramebuffer(TargetType::FRAMEBUFFER_TARGET, framebuffer_id);
+						CHECK_GL_ERROR;
+					}
+
+					inline void unbind() const
+					{
+						glBindFramebuffer(TargetType::FRAMEBUFFER_TARGET, 0);
+						CHECK_GL_ERROR;
+					}
+
+					FrameBuffer()
+					{
+						framebuffer_id = a.construct();
+						CHECK_GL_ERROR;
+						bind();
+						DEBUG_OUT("framebuffer created! id is " << framebuffer_id);
+						unbind();
+					}
+
+					~FrameBuffer()
+					{
+						a.destruct(framebuffer_id);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("framebuffer id " << framebuffer_id << " destructed!");
+					}
+
+					FrameBuffer(const FrameBuffer<TargetType, Allocator> &obj)
+					{
+						this->framebuffer_id = obj.framebuffer_id;
+
+						a.copy(obj.a);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("framebuffer copied! id is " << framebuffer_id);
+					}
+
+					FrameBuffer(FrameBuffer<TargetType, Allocator>&& obj)
+					{
+						this->framebuffer_id = obj.framebuffer_id;
+
+						a.move(std::move(obj.a));
+						CHECK_GL_ERROR;
+						DEBUG_OUT("framebuffer moved! id is " << framebuffer_id);
+					}
+
+					FrameBuffer& operator=(const FrameBuffer<TargetType, Allocator> &obj)
+					{
+						a.destruct(framebuffer_id);
+						this->framebuffer_id = obj.framebuffer_id;
+
+						a.copy(obj.a);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("framebuffer copied! id is " << framebuffer_id);
+						return *this;
+					}
+
+					FrameBuffer& operator=(FrameBuffer<TargetType, Allocator>&& obj)
+					{
+						a.destruct(framebuffer_id);
+						this->framebuffer_id = obj.framebuffer_id;
+
+						a.move(std::move(obj.a));
+						CHECK_GL_ERROR;
+						DEBUG_OUT("framebuffer moved! id is " << framebuffer_id);
+						return *this;
+					}
+
+					inline GLuint getID() const
+					{
+						return framebuffer_id;
+					}
+
+			};
+
+		//renderbuffer
+
+		template<typename TargetType = ReadDrawRenderBuffer, typename Allocator = GLAllocator<Alloc_RenderBuffer>>
+			class RenderBuffer{
+				private:
+					GLuint renderbuffer_id;
+					Allocator a;
+
+				public:
+					inline void bind() const
+					{
+						glBindRenderbuffer(TargetType::RENDERBUFFER_TARGET, renderbuffer_id);
+						CHECK_GL_ERROR;
+					}
+
+					inline void unbind() const
+					{
+						glBindRenderbuffer(TargetType::RENDERBUFFER_TARGET, 0);
+						CHECK_GL_ERROR;
+					}
+
+					RenderBuffer()
+					{
+						renderbuffer_id = a.construct();
+						CHECK_GL_ERROR;
+						bind();
+						DEBUG_OUT("renderbuffer created! id is " << renderbuffer_id);
+						unbind();
+					}
+
+					~RenderBuffer()
+					{
+						a.destruct(renderbuffer_id);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("renderbuffer id " << renderbuffer_id << " destructed!");
+					}
+
+					RenderBuffer(const RenderBuffer<TargetType, Allocator> &obj)
+					{
+						this->renderbuffer_id = obj.renderbuffer_id;
+
+						a.copy(obj.a);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("renderbuffer copied! id is " << renderbuffer_id);
+					}
+
+					RenderBuffer(RenderBuffer<TargetType, Allocator>&& obj)
+					{
+						this->renderbuffer_id = obj.renderbuffer_id;
+
+						a.move(std::move(obj.a));
+						CHECK_GL_ERROR;
+						DEBUG_OUT("renderbuffer moved! id is " << renderbuffer_id);
+					}
+
+					RenderBuffer& operator=(const RenderBuffer<TargetType, Allocator> &obj)
+					{
+						a.destruct(renderbuffer_id);
+						this->renderbuffer_id = obj.renderbuffer_id;
+
+						a.copy(obj.a);
+						CHECK_GL_ERROR;
+						DEBUG_OUT("renderbuffer copied! id is " << renderbuffer_id);
+						return *this;
+					}
+
+					RenderBuffer& operator=(RenderBuffer<TargetType, Allocator>&& obj)
+					{
+						a.destruct(renderbuffer_id);
+						this->renderbuffer_id = obj.renderbuffer_id;
+
+						a.move(std::move(obj.a));
+						CHECK_GL_ERROR;
+						DEBUG_OUT("renderbuffer moved! id is " << renderbuffer_id);
+						return *this;
+					}
+
+					inline GLuint getID() const
+					{
+						return renderbuffer_id;
+					}
+
+			};
+
 
 		//some tips
 		using VShader = Shader<VertexShader>;
@@ -1165,5 +1334,7 @@ namespace jikoLib{
 		using VBO = VertexBuffer<ArrayBuffer, StaticDraw>;
 		using IBO = VertexBuffer<ElementArrayBuffer, StaticDraw>;
 		using VAO = VertexArray<>;
+		using FBO = FrameBuffer<>;
+		using RBO = RenderBuffer<>;
 	}
 }

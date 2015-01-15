@@ -219,6 +219,8 @@ namespace jikoLib
 		struct Alloc_VertexBuffer {};
 		struct Alloc_VertexArray {};
 		struct Alloc_Texture {};
+		struct Alloc_FrameBuffer {};
+		struct Alloc_RenderBuffer {};
 
 
 
@@ -310,6 +312,50 @@ namespace jikoLib
 
 				constexpr static allocfunc_t allocfunc = &my_glGenTextures; 
 				constexpr static deallocfunc_t deallocfunc = &my_glDeleteTextures; 
+			};
+
+		template<>
+			struct GLAllocTraits<Alloc_FrameBuffer>
+			{
+				static GLuint my_glGenFramebuffers()
+				{
+					GLuint id;
+					glGenFramebuffers(1, &id);
+					return id;
+				}
+
+				static void my_glDeleteFramebuffers(GLuint id)
+				{
+					glDeleteFramebuffers(1, &id);
+				}
+
+				using allocfunc_t = GLuint(*)(void);
+				using deallocfunc_t = void(*)(GLuint);
+
+				constexpr static allocfunc_t allocfunc = &my_glGenFramebuffers; 
+				constexpr static deallocfunc_t deallocfunc = &my_glDeleteFramebuffers; 
+			};
+
+		template<>
+			struct GLAllocTraits<Alloc_RenderBuffer>
+			{
+				static GLuint my_glGenRenderbuffers()
+				{
+					GLuint id;
+					glGenRenderbuffers(1, &id);
+					return id;
+				}
+
+				static void my_glDeleteRenderbuffers(GLuint id)
+				{
+					glDeleteRenderbuffers(1, &id);
+				}
+
+				using allocfunc_t = GLuint(*)(void);
+				using deallocfunc_t = void(*)(GLuint);
+
+				constexpr static allocfunc_t allocfunc = &my_glGenRenderbuffers; 
+				constexpr static deallocfunc_t deallocfunc = &my_glDeleteRenderbuffers; 
 			};
 
 
@@ -573,7 +619,7 @@ namespace jikoLib
 				constexpr static GLenum TEXTURE_UNIT = GL_TEXTURE0 + i;
 				constexpr static GLuint TEXTURE_UNIT_NUM = i;
 			};
-		
+
 
 		/**
 		 * GL_RGB GL_RGBA
@@ -625,166 +671,166 @@ namespace jikoLib
 		template<typename TargetType, GLint level, typename int_format, typename format>
 			struct TextureTraits
 			{
-					static void texImage2D(const std::string &path)
+				static void texImage2D(const std::string &path)
+				{
+					ILuint imgID;
+					ilGenImages(1, &imgID);
+					ilBindImage(imgID);
+					ILboolean success = ilLoadImage(path.c_str());
+					if(success == IL_TRUE)
 					{
-						ILuint imgID;
-						ilGenImages(1, &imgID);
-						ilBindImage(imgID);
-						ILboolean success = ilLoadImage(path.c_str());
+						success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
-							if(success == IL_TRUE)
-							{
-								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
-								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TargetType::TEXTURE_TARGET, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
-								CHECK_GL_ERROR;
-							}
+							//texture load
+							glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
+							CHECK_GL_ERROR;
+							TexImage_D<2>::func(TargetType::TEXTURE_TARGET, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+							CHECK_GL_ERROR;
 						}
-						else
-						{
-							std::cerr << "cannot load image! --did nothing" << std::endl;
-						}
-						ilDeleteImages(1, &imgID);
 					}
+					else
+					{
+						std::cerr << "cannot load image! --did nothing" << std::endl;
+					}
+					ilDeleteImages(1, &imgID);
+				}
 			};
 
-		
+
 		template<GLint level, typename int_format,typename format>
 			struct TextureTraits<TextureCubeMap, level, int_format, format>
 			{
-					static void texImage2D(
-							const std::string &neg_x,
-							const std::string &pos_x,
-							const std::string &neg_y,
-							const std::string &pos_y,
-							const std::string &neg_z,
-							const std::string &pos_z)
+				static void texImage2D(
+						const std::string &neg_x,
+						const std::string &pos_x,
+						const std::string &neg_y,
+						const std::string &pos_y,
+						const std::string &neg_z,
+						const std::string &pos_z)
+				{
+					ILuint imgID;
+					ilGenImages(1, &imgID);
+					ilBindImage(imgID);
+					ILboolean success;
+
+					//NEG_X
+					success = ilLoadImage(neg_x.c_str());
+					if(success == IL_TRUE)
 					{
-						ILuint imgID;
-						ilGenImages(1, &imgID);
-						ilBindImage(imgID);
-						ILboolean success;
-
-						//NEG_X
-						success = ilLoadImage(neg_x.c_str());
+						success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
 						if(success == IL_TRUE)
 						{
-							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
-							if(success == IL_TRUE)
-							{
-								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
-								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGX, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
-								CHECK_GL_ERROR;
-							}
+							//texture load
+							glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
+							CHECK_GL_ERROR;
+							TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGX, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+							CHECK_GL_ERROR;
 						}
-						else
-						{
-							std::cerr << "cannot load image! --did nothing" << std::endl;
-						}
-
-						//POS_X
-						success = ilLoadImage(pos_x.c_str());
-						if(success == IL_TRUE)
-						{
-							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
-							if(success == IL_TRUE)
-							{
-								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
-								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSX, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
-								CHECK_GL_ERROR;
-							}
-						}
-						else
-						{
-							std::cerr << "cannot load image! --did nothing" << std::endl;
-						}
-
-						//NEG_Y
-						success = ilLoadImage(neg_y.c_str());
-						if(success == IL_TRUE)
-						{
-							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
-							if(success == IL_TRUE)
-							{
-								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
-								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGY, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
-								CHECK_GL_ERROR;
-							}
-						}
-						else
-						{
-							std::cerr << "cannot load image! --did nothing" << std::endl;
-						}
-
-						//POS_Y
-						success = ilLoadImage(pos_y.c_str());
-						if(success == IL_TRUE)
-						{
-							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
-							if(success == IL_TRUE)
-							{
-								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
-								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSY, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
-								CHECK_GL_ERROR;
-							}
-						}
-						else
-						{
-							std::cerr << "cannot load image! --did nothing" << std::endl;
-						}
-
-						//NEG_Z
-						success = ilLoadImage(neg_z.c_str());
-						if(success == IL_TRUE)
-						{
-							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
-							if(success == IL_TRUE)
-							{
-								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
-								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGZ, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
-								CHECK_GL_ERROR;
-							}
-						}
-						else
-						{
-							std::cerr << "cannot load image! --did nothing" << std::endl;
-						}
-
-						//POS_Z
-						success = ilLoadImage(pos_z.c_str());
-						if(success == IL_TRUE)
-						{
-							success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
-							if(success == IL_TRUE)
-							{
-								//texture load
-								glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
-								CHECK_GL_ERROR;
-								TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSZ, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
-								CHECK_GL_ERROR;
-							}
-						}
-						else
-						{
-							std::cerr << "cannot load image! --did nothing" << std::endl;
-						}
-
-
-						ilDeleteImages(1, &imgID);
 					}
+					else
+					{
+						std::cerr << "cannot load image! --did nothing" << std::endl;
+					}
+
+					//POS_X
+					success = ilLoadImage(pos_x.c_str());
+					if(success == IL_TRUE)
+					{
+						success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
+						if(success == IL_TRUE)
+						{
+							//texture load
+							glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
+							CHECK_GL_ERROR;
+							TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSX, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+							CHECK_GL_ERROR;
+						}
+					}
+					else
+					{
+						std::cerr << "cannot load image! --did nothing" << std::endl;
+					}
+
+					//NEG_Y
+					success = ilLoadImage(neg_y.c_str());
+					if(success == IL_TRUE)
+					{
+						success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
+						if(success == IL_TRUE)
+						{
+							//texture load
+							glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
+							CHECK_GL_ERROR;
+							TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGY, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+							CHECK_GL_ERROR;
+						}
+					}
+					else
+					{
+						std::cerr << "cannot load image! --did nothing" << std::endl;
+					}
+
+					//POS_Y
+					success = ilLoadImage(pos_y.c_str());
+					if(success == IL_TRUE)
+					{
+						success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
+						if(success == IL_TRUE)
+						{
+							//texture load
+							glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
+							CHECK_GL_ERROR;
+							TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSY, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+							CHECK_GL_ERROR;
+						}
+					}
+					else
+					{
+						std::cerr << "cannot load image! --did nothing" << std::endl;
+					}
+
+					//NEG_Z
+					success = ilLoadImage(neg_z.c_str());
+					if(success == IL_TRUE)
+					{
+						success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
+						if(success == IL_TRUE)
+						{
+							//texture load
+							glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
+							CHECK_GL_ERROR;
+							TexImage_D<2>::func(TextureCubeMap::TEXTURE_NEGZ, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+							CHECK_GL_ERROR;
+						}
+					}
+					else
+					{
+						std::cerr << "cannot load image! --did nothing" << std::endl;
+					}
+
+					//POS_Z
+					success = ilLoadImage(pos_z.c_str());
+					if(success == IL_TRUE)
+					{
+						success = ilConvertImage(format::IL_COLOR, IL_UNSIGNED_BYTE);
+						if(success == IL_TRUE)
+						{
+							//texture load
+							glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
+							CHECK_GL_ERROR;
+							TexImage_D<2>::func(TextureCubeMap::TEXTURE_POSZ, level, int_format::TEXTURE_COLOR, (GLuint)ilGetInteger(IL_IMAGE_WIDTH),(GLuint)ilGetInteger(IL_IMAGE_HEIGHT), 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(ilGetData()));
+							CHECK_GL_ERROR;
+						}
+					}
+					else
+					{
+						std::cerr << "cannot load image! --did nothing" << std::endl;
+					}
+
+
+					ilDeleteImages(1, &imgID);
+				}
 
 			};
 
@@ -792,6 +838,7 @@ namespace jikoLib
 		 * Texture parameter
 		 *
 		 */
+
 		template<GLenum param>
 			struct Wrap_S{
 				static_assert((param == GL_CLAMP_TO_EDGE)||( param == GL_REPEAT), "invalid param");
@@ -862,6 +909,33 @@ namespace jikoLib
 					Last::setTextureParameter(target);
 				}
 			};
-		
+
+		/**
+		 * framebuffer target type
+		 *
+		 */
+
+		struct ReadFrameBuffer{
+			constexpr static GLenum FRAMEBUFFER_TARGET = GL_READ_FRAMEBUFFER;
+		};
+
+		struct DrawFrameBuffer{
+			constexpr static GLenum FRAMEBUFFER_TARGET = GL_DRAW_FRAMEBUFFER;
+		};
+
+		struct ReadDrawFrameBuffer{
+			constexpr static GLenum FRAMEBUFFER_TARGET = GL_FRAMEBUFFER;
+		};
+
+		/**
+		 * renderbuffer target type
+		 *
+		 */
+
+		struct ReadDrawRenderBuffer{
+			constexpr static GLenum RENDERBUFFER_TARGET = GL_RENDERBUFFER;
+		};
+
+
 	}
 }

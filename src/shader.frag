@@ -38,13 +38,13 @@ uniform sampler2D textureobj;
 void main()
 {
 	//ambient
-	vec4 ambient = light.ambient*material.ambient;
+	vec4 ambient = light.ambient*texture2D(textureobj, Texcrd);
 	//diffuse
 	vec3 N = normalize(mat3(View*Model)*Normal);
 	vec3 P = (View*Model*vec4(Vertex, 1.0)).xyz;
 	vec3 L = (View*vec4(light.position, 1.0)).xyz;
 	float diffuseLighting = max(dot(N, normalize(L-P)), 0);
-	vec4 diffuse = light.diffuse*diffuseLighting*material.diffuse;
+	vec4 diffuse = light.diffuse*diffuseLighting*texture2D(textureobj, Texcrd);
 	//specular
 	vec3 H = normalize(normalize(L-P)+normalize(-P));
 	float specularLighting = pow(max(dot(H, N),0), material.shininess);
@@ -54,6 +54,6 @@ void main()
 	}
 	vec4 specular = specularLighting*light.specular*material.specular;
 	vec4 texcolor = texture2D(textureobj, Texcrd);
-	gl_FragColor = (ambient + diffuse + specular)*(1.0/(attenuation.constant+attenuation.linear*length(L-P)+attenuation.quadratic*length(L-P)*length(L-P)))+texture2D(textureobj, Texcrd);
+	gl_FragColor = (ambient + diffuse + specular)*(1.0/(attenuation.constant+attenuation.linear*length(L-P)+attenuation.quadratic*length(L-P)*length(L-P)));
 }
 )"
