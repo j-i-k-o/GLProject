@@ -586,6 +586,11 @@ namespace jikoLib
 		 *
 		 */
 
+		struct Texture1D
+		{
+			constexpr static GLenum TEXTURE_TARGET = GL_TEXTURE_1D;
+		};
+
 		struct Texture2D
 		{
 			constexpr static GLenum TEXTURE_TARGET = GL_TEXTURE_2D;
@@ -605,6 +610,25 @@ namespace jikoLib
 			constexpr static GLenum TEXTURE_POSY = GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
 			constexpr static GLenum TEXTURE_NEGZ = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
 			constexpr static GLenum TEXTURE_POSZ = GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+		};
+
+		struct CubeMapNegX{
+			constexpr static GLenum CUBEMAP_VALUE = GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+		};
+		struct CubeMapPosX{
+			constexpr static GLenum CUBEMAP_VALUE = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+		};
+		struct CubeMapNegY{
+			constexpr static GLenum CUBEMAP_VALUE = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+		};
+		struct CubeMapPosY{
+			constexpr static GLenum CUBEMAP_VALUE = GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+		};
+		struct CubeMapNegZ{
+			constexpr static GLenum CUBEMAP_VALUE = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+		};
+		struct CubeMapPosZ{
+			constexpr static GLenum CUBEMAP_VALUE = GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
 		};
 
 		/**
@@ -694,6 +718,15 @@ namespace jikoLib
 						std::cerr << "cannot load image! --did nothing" << std::endl;
 					}
 					ilDeleteImages(1, &imgID);
+				}
+
+				static void texImage2D(GLuint width, GLuint height)
+				{
+					//null texture
+					glPixelStorei(GL_UNPACK_ALIGNMENT, format::ALIGN);
+					CHECK_GL_ERROR;
+					TexImage_D<2>::func(TargetType::TEXTURE_TARGET, level, int_format::TEXTURE_COLOR, width, height, 0, format::TEXTURE_COLOR, GL_UNSIGNED_BYTE, static_cast<GLubyte*>(NULL));
+					CHECK_GL_ERROR;
 				}
 			};
 
@@ -926,6 +959,57 @@ namespace jikoLib
 		struct ReadDrawFrameBuffer{
 			constexpr static GLenum FRAMEBUFFER_TARGET = GL_FRAMEBUFFER;
 		};
+
+		/**
+		 * framebuffer attachment type
+		 *
+		 */
+
+		template<std::size_t i>
+		struct ColorAttachment{
+			static_assert(0<=i && i<16,"number must be less than 16.");
+			constexpr static GLenum ATTACHMENT = GL_COLOR_ATTACHMENT0 + i;
+		};
+
+		struct DepthAttachment{
+			constexpr static GLenum ATTACHMENT = GL_DEPTH_ATTACHMENT;
+		};
+
+		struct StencilAttachment{
+			constexpr static GLenum ATTACHMENT = GL_STENCIL_ATTACHMENT;
+		};
+
+		struct DepthStencilAttachment{
+			constexpr static GLenum ATTACHMENT = GL_DEPTH_STENCIL_ATTACHMENT;
+		};
+
+		/**
+		 * framebuffer attachment traits
+		 *
+		 */
+
+		template<typename tex_TargetType>
+			struct fbAttachTraits{};
+
+		template<>
+			struct fbAttachTraits<Texture1D>{
+				constexpr static auto& func = glFramebufferTexture1D;
+			};
+
+		template<>
+			struct fbAttachTraits<Texture2D>{
+				constexpr static auto& func = glFramebufferTexture2D;
+			};
+
+		template<>
+			struct fbAttachTraits<Texture3D>{
+				constexpr static auto& func = glFramebufferTexture3D;
+			};
+
+		template<>
+			struct fbAttachTraits<TextureCubeMap>{
+				constexpr static auto& func = glFramebufferTexture2D;
+			};
 
 		/**
 		 * renderbuffer target type

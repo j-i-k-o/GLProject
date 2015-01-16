@@ -1144,6 +1144,7 @@ namespace jikoLib{
 					template<GLint level = 0, typename int_format = RGBA, typename format = RGBA, typename... Args>
 						inline void texImage2D(Args&&... args)
 						{
+							static_assert(is_exist<TargetType, Texture2D, TextureCubeMap>::value, "invalid type");
 							bind();
 							TextureTraits<TargetType, level, int_format, format>::texImage2D(std::forward<Args>(args)...);
 							unbind();
@@ -1157,6 +1158,10 @@ namespace jikoLib{
 							unbind();
 						}
 			};
+
+
+		template<typename TargetType, typename Allocator>
+			class RenderBuffer;
 
 		//framebuffer
 
@@ -1239,6 +1244,112 @@ namespace jikoLib{
 					{
 						return framebuffer_id;
 					}
+
+					//attach renderbuffer
+
+					template<typename Attachment, typename RBO_TargetType, typename RBO_Alloc>
+						void attach(const RenderBuffer<RBO_TargetType, RBO_Alloc> &rbo)
+						{
+							bind();
+							rbo.bind();
+							glFramebufferRenderbuffer(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, RBO_TargetType::RENDERBUFFER_TARGET, rbo.getID());
+							CHECK_GL_ERROR;
+							DEBUG_OUT("attach renderbuffer. renderbuffer id is " << rbo.getID());
+							rbo.unbind();
+							unbind();
+						}
+
+					template<typename Attachment, typename RBO_TargetType, typename RBO_Alloc>
+						void detach(const RenderBuffer<RBO_TargetType, RBO_Alloc> &rbo)
+						{
+							bind();
+							rbo.bind();
+							glFramebufferRenderbuffer(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, RBO_TargetType::RENDERBUFFER_TARGET, 0);
+							CHECK_GL_ERROR;
+							DEBUG_OUT("detach renderbuffer. renderbuffer id is " << rbo.getID());
+							rbo.unbind();
+							unbind();
+						}
+
+					//attach texture (not texture3D and texturecubemap)
+
+					template<typename Attachment, GLint level = 0, typename tex_TargetType, typename tex_Alloc>
+						void attach(const Texture<tex_TargetType, tex_Alloc>& tex)
+						{
+							static_assert(!is_exist<tex_TargetType, Texture3D, TextureCubeMap>::value, "invalid type");
+							bind();
+							tex.bind();
+							fbAttachTraits<tex_TargetType>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, tex_TargetType::TEXTURE_TARGET, tex.getID(), level);
+							CHECK_GL_ERROR;
+							tex.unbind();
+							unbind();
+						}
+
+					//for texture3D 
+					
+					template<typename Attachment, GLint level = 0, typename tex_Alloc>
+						void attach(const Texture<Texture3D, tex_Alloc>& tex, GLint layer)
+						{
+							bind();
+							tex.bind();
+							fbAttachTraits<Texture3D>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, Texture3D::TEXTURE_TARGET, tex.getID(), level, layer);
+							CHECK_GL_ERROR;
+							tex.unbind();
+							unbind();
+						}
+
+					//for texture cubemap 
+
+					template<typename Attachment, typename CubeMapType, GLint level = 0, typename tex_Alloc>
+						void attach(const Texture<TextureCubeMap, tex_Alloc>& tex)
+						{
+							bind();
+							tex.bind();
+							fbAttachTraits<TextureCubeMap>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, CubeMapType::CUBEMAP_VALUE, tex.getID(), level);
+							CHECK_GL_ERROR;
+							tex.unbind();
+							unbind();
+						}
+
+					//detach texture (not texture3D and texturecubemap)
+
+					template<typename Attachment, GLint level = 0, typename tex_TargetType, typename tex_Alloc>
+						void detach(const Texture<tex_TargetType, tex_Alloc>& tex)
+						{
+							static_assert(!is_exist<tex_TargetType, Texture3D, TextureCubeMap>::value, "invalid type");
+							bind();
+							tex.bind();
+							fbAttachTraits<tex_TargetType>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, tex_TargetType::TEXTURE_TARGET, 0, level);
+							CHECK_GL_ERROR;
+							tex.unbind();
+							unbind();
+						}
+
+					//for texture3D 
+
+					template<typename Attachment, GLint level = 0, typename tex_Alloc>
+						void detach(const Texture<Texture3D, tex_Alloc>& tex, GLint layer)
+						{
+							bind();
+							tex.bind();
+							fbAttachTraits<Texture3D>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, Texture3D::TEXTURE_TARGET, 0, level, layer);
+							CHECK_GL_ERROR;
+							tex.unbind();
+							unbind();
+						}
+
+					//for texture cubemap 
+
+					template<typename Attachment, typename CubeMapType, GLint level = 0, typename tex_Alloc>
+						void detach(const Texture<TextureCubeMap, tex_Alloc>& tex)
+						{
+							bind();
+							tex.bind();
+							fbAttachTraits<TextureCubeMap>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, CubeMapType::CUBEMAP_VALUE, 0, level);
+							CHECK_GL_ERROR;
+							tex.unbind();
+							unbind();
+						}
 
 			};
 
@@ -1327,7 +1438,7 @@ namespace jikoLib{
 			};
 
 
-		//some tips
+		//some alias 
 		using VShader = Shader<VertexShader>;
 		using FShader = Shader<FragmentShader>;
 		using ShaderProgram = ShaderProg<>;

@@ -103,6 +103,12 @@ int main(int argc, char* argv[])
 	floor_mesh.copyData(floor_vertex, floor_normal, floor_texcrd);
 	floor_mesh.copyIndex(floor_index);
 
+	RBO rbo;
+	FBO fbo;
+	Texture<TextureCubeMap> cubemap;
+	Texture<Texture3D> _3d;
+	fbo.attach<ColorAttachment<0>>(_3d, 3);
+
 	Mesh3D cube_mesh;
 	MeshSample::Cube cubehelper(10.0);
 	cube_mesh.copyData(cubehelper.getVertex(), cubehelper.getNormal(), cubehelper.getTexcrd(), cubehelper.getNumVertex());
