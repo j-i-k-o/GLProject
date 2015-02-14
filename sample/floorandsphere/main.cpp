@@ -103,12 +103,16 @@ int main(int argc, char* argv[])
 	floor_mesh.copyData(floor_vertex, floor_normal, floor_texcrd);
 	floor_mesh.copyIndex(floor_index);
 
+	RBO rbo;
+	FBO fbo;
+	Texture<TextureCubeMap> cubemap;
+	Texture<Texture3D> _3d;
+	fbo.attach<ColorAttachment<0>, CubeMapPosX>(cubemap);
+
 	Mesh3D cube_mesh;
 	MeshSample::Sphere cubehelper(5.0, 50, 50);
 	cube_mesh.copyData(cubehelper.getVertex(), cubehelper.getNormal(), cubehelper.getTexcrd(), cubehelper.getNumVertex());
-	cube_mesh.setPos(glm::vec3(0.0f, 5.0f, 5.0f));
-	cube_mesh.rotate(glm::vec3(0.0f, 1.0f, 0.0f), M_PI/2.5);
-	cube_mesh.rotate(glm::vec3(1.0f, 0.0f, 0.0f), 120.0*M_PI/180.0);
+	cube_mesh.setPos(glm::vec3(0.0f, 0.0f, 5.0f));
 
 	Camera camera;
 	camera.setPos(glm::vec3(-40.0f, -40.0f, 13.0f));
@@ -124,7 +128,7 @@ int main(int argc, char* argv[])
 	program.setUniformXt("light.ambient", 0.75f, 0.75f, 0.75f, 1.0f);
 	program.setUniformXt("light.diffuse", 1.0f, 1.0f, 1.0f, 1.0f);
 	program.setUniformXt("light.specular", 1.0f, 1.0f, 1.0f, 1.0f);
-	program.setUniformXt("light.position", -10.0f, -10.0f, 10.0f);
+	program.setUniformXt("light.position", -1.0f, -1.0f, 10.0f);
 
 	program.setUniformXt("material.ambient", 0.3f, 0.25f, 0.4f, 1.0f);
 	program.setUniformXt("material.diffuse", 0.75f, 0.0f, 1.0f, 1.0f);
@@ -133,13 +137,9 @@ int main(int argc, char* argv[])
 
 	program.setUniformXt("attenuation.constant", 0.0f);
 	program.setUniformXt("attenuation.linear", 0.0f);
-	program.setUniformXt("attenuation.quadratic", 0.01f);
+	program.setUniformXt("attenuation.quadratic", 0.05f);
 
 	program.setUniformXt("textureobj", 0);
-
-	//framebuffer
-	//
-	
 
 	bool quit = false;
 	SDL_Event e;
@@ -154,14 +154,6 @@ int main(int argc, char* argv[])
 			if( e.type == SDL_QUIT )
 			{
 				quit = true;
-			}
-			if(e.type == SDL_KEYDOWN)
-			{
-				switch (e.key.keysym.sym) {
-					case SDLK_UP:
-						cube_mesh.rotate(glm::vec3(1.0f, 0.0f, 0.0f), 0.1);
-						break;
-				}
 			}
 		}
 		CHECK_GL_ERROR;

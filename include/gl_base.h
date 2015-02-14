@@ -34,16 +34,9 @@ namespace jikoLib{
 			class VertexArray;
 
 
-
 		/*
-		 *
 		 *    gl_base
-		 *
-		 *
-		 *
-		 *
 		 */
-
 
 
 		//shader
@@ -592,27 +585,6 @@ namespace jikoLib{
 					}
 
 
-					/*
-						template<typename T,std::size_t Size_Elem, std::size_t Dim>
-						VertexBuffer& operator<<(const T (&array)[Size_Elem][Dim])
-					// Set Array for raw array
-					{
-					static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-					static_assert( Dim <= 4, "Invalid dimension" );
-					static_assert( (Size_Elem != 0)&&(Dim != 0), "Zero Elem" );
-					static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-					"IBO array type must be GLushort or GLuint or GLubyte");
-					bind();
-					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*Dim*sizeof(T), array, UsageType::BUFFER_USAGE);
-					CHECK_GL_ERROR;
-					DEBUG_OUT("allocate "<< Size_Elem*Dim*sizeof(T) <<" B success! buffer id is " << buffer_id);
-					setSizeElem_Dim_Type<T>(Size_Elem, Dim);
-					unbind();
-					return *this;
-					}
-
-*/
-
 					template<typename T>
 						void copyData(const T* array, std::size_t Size_Elem, std::size_t Dim = 1)
 						{
@@ -643,26 +615,6 @@ namespace jikoLib{
 							unbind();
 						}
 
-					/*	
-						template<typename T, std::size_t Size_Elem>
-						VertexBuffer& operator<<(const T (&array)[Size_Elem])
-					//Set Array for raw array
-					{
-					static_assert( is_exist<T, GLbyte, GLubyte, GLshort, GLushort, GLint, GLuint, GLfloat, GLdouble>::value, "Invalid type" );
-					static_assert( (Size_Elem != 0), "Zero Elem" );
-					static_assert((!std::is_same<TargetType,ElementArrayBuffer>::value)||((std::is_same<TargetType,ElementArrayBuffer>::value)&&(is_exist<T,GLubyte,GLushort,GLuint>::value)),
-					"IBO array type must be GLushort or GLuint or GLubyte");
-					bind();
-					glBufferData(TargetType::BUFFER_TARGET, Size_Elem*sizeof(T), array, UsageType::BUFFER_USAGE);
-					CHECK_GL_ERROR;
-					DEBUG_OUT("allocate "<< Size_Elem*sizeof(T) <<" B success! buffer id is " << buffer_id);
-					setSizeElem_Dim_Type<T>(Size_Elem, 1);
-					unbind();
-					return *this;
-					}
-
-*/
-
 					template<typename T, std::size_t Size_Elem>
 						inline void copyData(const T (&array)[Size_Elem])
 						{
@@ -677,7 +629,6 @@ namespace jikoLib{
 							setSizeElem_Dim_Type<T>(Size_Elem, 1);
 							unbind();
 						}
-
 
 					VertexBuffer operator+(const VertexBuffer<TargetType, UsageType, Allocator> &obj)
 						//merge buffer data
@@ -1247,24 +1198,24 @@ namespace jikoLib{
 
 					//attach renderbuffer
 
-					template<typename Attachment, typename RBO_TargetType, typename RBO_Alloc>
+					template<typename Attachment, typename attachTargetType = TargetType, typename RBO_TargetType, typename RBO_Alloc>
 						void attach(const RenderBuffer<RBO_TargetType, RBO_Alloc> &rbo)
 						{
 							bind();
 							rbo.bind();
-							glFramebufferRenderbuffer(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, RBO_TargetType::RENDERBUFFER_TARGET, rbo.getID());
+							glFramebufferRenderbuffer(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, RBO_TargetType::RENDERBUFFER_TARGET, rbo.getID());
 							CHECK_GL_ERROR;
 							DEBUG_OUT("attach renderbuffer. renderbuffer id is " << rbo.getID());
 							rbo.unbind();
 							unbind();
 						}
 
-					template<typename Attachment, typename RBO_TargetType, typename RBO_Alloc>
+					template<typename Attachment, typename attachTargetType = TargetType, typename RBO_TargetType, typename RBO_Alloc>
 						void detach(const RenderBuffer<RBO_TargetType, RBO_Alloc> &rbo)
 						{
 							bind();
 							rbo.bind();
-							glFramebufferRenderbuffer(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, RBO_TargetType::RENDERBUFFER_TARGET, 0);
+							glFramebufferRenderbuffer(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, RBO_TargetType::RENDERBUFFER_TARGET, 0);
 							CHECK_GL_ERROR;
 							DEBUG_OUT("detach renderbuffer. renderbuffer id is " << rbo.getID());
 							rbo.unbind();
@@ -1273,13 +1224,13 @@ namespace jikoLib{
 
 					//attach texture (not texture3D and texturecubemap)
 
-					template<typename Attachment, GLint level = 0, typename tex_TargetType, typename tex_Alloc>
+					template<typename Attachment, typename attachTargetType = TargetType, GLint level = 0, typename tex_TargetType, typename tex_Alloc>
 						void attach(const Texture<tex_TargetType, tex_Alloc>& tex)
 						{
 							static_assert(!is_exist<tex_TargetType, Texture3D, TextureCubeMap>::value, "invalid type");
 							bind();
 							tex.bind();
-							fbAttachTraits<tex_TargetType>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, tex_TargetType::TEXTURE_TARGET, tex.getID(), level);
+							fbAttachTraits<tex_TargetType>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, tex_TargetType::TEXTURE_TARGET, tex.getID(), level);
 							CHECK_GL_ERROR;
 							tex.unbind();
 							unbind();
@@ -1287,12 +1238,12 @@ namespace jikoLib{
 
 					//for texture3D 
 					
-					template<typename Attachment, GLint level = 0, typename tex_Alloc>
+					template<typename Attachment, typename attachTargetType = TargetType, GLint level = 0, typename tex_Alloc>
 						void attach(const Texture<Texture3D, tex_Alloc>& tex, GLint layer)
 						{
 							bind();
 							tex.bind();
-							fbAttachTraits<Texture3D>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, Texture3D::TEXTURE_TARGET, tex.getID(), level, layer);
+							fbAttachTraits<Texture3D>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, Texture3D::TEXTURE_TARGET, tex.getID(), level, layer);
 							CHECK_GL_ERROR;
 							tex.unbind();
 							unbind();
@@ -1300,12 +1251,12 @@ namespace jikoLib{
 
 					//for texture cubemap 
 
-					template<typename Attachment, typename CubeMapType, GLint level = 0, typename tex_Alloc>
+					template<typename Attachment, typename CubeMapType, typename attachTargetType = TargetType, GLint level = 0, typename tex_Alloc>
 						void attach(const Texture<TextureCubeMap, tex_Alloc>& tex)
 						{
 							bind();
 							tex.bind();
-							fbAttachTraits<TextureCubeMap>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, CubeMapType::CUBEMAP_VALUE, tex.getID(), level);
+							fbAttachTraits<TextureCubeMap>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, CubeMapType::CUBEMAP_VALUE, tex.getID(), level);
 							CHECK_GL_ERROR;
 							tex.unbind();
 							unbind();
@@ -1313,13 +1264,13 @@ namespace jikoLib{
 
 					//detach texture (not texture3D and texturecubemap)
 
-					template<typename Attachment, GLint level = 0, typename tex_TargetType, typename tex_Alloc>
+					template<typename Attachment, typename attachTargetType = TargetType, GLint level = 0, typename tex_TargetType, typename tex_Alloc>
 						void detach(const Texture<tex_TargetType, tex_Alloc>& tex)
 						{
 							static_assert(!is_exist<tex_TargetType, Texture3D, TextureCubeMap>::value, "invalid type");
 							bind();
 							tex.bind();
-							fbAttachTraits<tex_TargetType>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, tex_TargetType::TEXTURE_TARGET, 0, level);
+							fbAttachTraits<tex_TargetType>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, tex_TargetType::TEXTURE_TARGET, 0, level);
 							CHECK_GL_ERROR;
 							tex.unbind();
 							unbind();
@@ -1327,12 +1278,12 @@ namespace jikoLib{
 
 					//for texture3D 
 
-					template<typename Attachment, GLint level = 0, typename tex_Alloc>
+					template<typename Attachment, typename attachTargetType = TargetType, GLint level = 0, typename tex_Alloc>
 						void detach(const Texture<Texture3D, tex_Alloc>& tex, GLint layer)
 						{
 							bind();
 							tex.bind();
-							fbAttachTraits<Texture3D>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, Texture3D::TEXTURE_TARGET, 0, level, layer);
+							fbAttachTraits<Texture3D>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, Texture3D::TEXTURE_TARGET, 0, level, layer);
 							CHECK_GL_ERROR;
 							tex.unbind();
 							unbind();
@@ -1340,12 +1291,12 @@ namespace jikoLib{
 
 					//for texture cubemap 
 
-					template<typename Attachment, typename CubeMapType, GLint level = 0, typename tex_Alloc>
+					template<typename Attachment, typename CubeMapType, typename attachTargetType = TargetType, GLint level = 0, typename tex_Alloc>
 						void detach(const Texture<TextureCubeMap, tex_Alloc>& tex)
 						{
 							bind();
 							tex.bind();
-							fbAttachTraits<TextureCubeMap>::func(TargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, CubeMapType::CUBEMAP_VALUE, 0, level);
+							fbAttachTraits<TextureCubeMap>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, CubeMapType::CUBEMAP_VALUE, 0, level);
 							CHECK_GL_ERROR;
 							tex.unbind();
 							unbind();

@@ -1,2 +1,7 @@
-# OpenGL Project
+OpenGL Project
+==============
+
+about
+-----
+
 This is my OpenGL project using SDL.

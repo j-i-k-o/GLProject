@@ -543,22 +543,22 @@ namespace jikoLib{
 							vertex.push_back(0);
 							vertex.push_back(radius);
 							
-							texcrd.push_back(0.5f);
+							texcrd.push_back((GLfloat)i/SLICES);
 							texcrd.push_back(1.0f);
 
 							vertex.push_back(radius*sin(M_PI*(GLfloat)(1)/STACKS)*cos(2*M_PI*(GLfloat)(i)/SLICES));
 							vertex.push_back(radius*sin(M_PI*(GLfloat)(1)/STACKS)*sin(2*M_PI*(GLfloat)(i)/SLICES));
 							vertex.push_back(radius*cos(M_PI*(GLfloat)(1)/STACKS));
 
-							texcrd.push_back(0.0f);
-							texcrd.push_back(0.0f);
+							texcrd.push_back((GLfloat)i/SLICES);
+							texcrd.push_back(1.0f - 1.0f/STACKS);
 
 							vertex.push_back(radius*sin(M_PI*(GLfloat)(1)/STACKS)*cos(2*M_PI*(GLfloat)(i+1)/SLICES));
 							vertex.push_back(radius*sin(M_PI*(GLfloat)(1)/STACKS)*sin(2*M_PI*(GLfloat)(i+1)/SLICES));
 							vertex.push_back(radius*cos(M_PI*(GLfloat)(1)/STACKS));
 
-							texcrd.push_back(1.0f);
-							texcrd.push_back(0.0f);
+							texcrd.push_back((GLfloat)i/SLICES);
+							texcrd.push_back(1.0f - 1.0f/STACKS);
 						}
 
 						for(int i=0; i<SLICES; i++)
@@ -569,43 +569,43 @@ namespace jikoLib{
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*sin(2 * M_PI*(GLfloat)(i + 1) / SLICES));
 								vertex.push_back(radius*cos(M_PI * (GLfloat)(j) / STACKS));
 
-								texcrd.push_back(1.0f);
-								texcrd.push_back(1.0f);
+								texcrd.push_back((GLfloat)(i+1)/SLICES);
+								texcrd.push_back(1.0f - (GLfloat)(j) / STACKS);
 
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*cos(2 * M_PI*(GLfloat)(i) / SLICES));
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*sin(2 * M_PI*(GLfloat)(i) / SLICES));
 								vertex.push_back(radius*cos(M_PI * (GLfloat)(j) / STACKS));
 
-								texcrd.push_back(0.0f);
-								texcrd.push_back(1.0f);
+								texcrd.push_back((GLfloat)(i)/SLICES);
+								texcrd.push_back(1.0f - (GLfloat)(j) / STACKS);
 
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i) / SLICES));
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i) / SLICES));
 								vertex.push_back(radius*cos(M_PI * (GLfloat)(j + 1) / STACKS));
 
-								texcrd.push_back(0.0f);
-								texcrd.push_back(0.0f);
+								texcrd.push_back((GLfloat)(i)/SLICES);
+								texcrd.push_back(1.0f - (GLfloat)(j+1) / STACKS);
 
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*cos(2 * M_PI*(GLfloat)(i + 1) / SLICES));
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j) / STACKS)*sin(2 * M_PI*(GLfloat)(i + 1) / SLICES));
 								vertex.push_back(radius*cos(M_PI * (GLfloat)(j) / STACKS));
 
-								texcrd.push_back(1.0f);
-								texcrd.push_back(1.0f);
+								texcrd.push_back((GLfloat)(i+1)/SLICES);
+								texcrd.push_back(1.0f - (GLfloat)(j) / STACKS);
 
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i) / SLICES));
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i) / SLICES));
 								vertex.push_back(radius*cos(M_PI * (GLfloat)(j + 1) / STACKS));
 
-								texcrd.push_back(0.0f);
-								texcrd.push_back(0.0f);
+								texcrd.push_back((GLfloat)(i)/SLICES);
+								texcrd.push_back(1.0f - (GLfloat)(j+1) / STACKS);
 
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i + 1) / SLICES));
 								vertex.push_back(radius*sin(M_PI * (GLfloat)(j + 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i + 1) / SLICES));
 								vertex.push_back(radius*cos(M_PI * (GLfloat)(j + 1) / STACKS));
 
-								texcrd.push_back(1.0f);
-								texcrd.push_back(0.0f);
+								texcrd.push_back((GLfloat)(i+1)/SLICES);
+								texcrd.push_back(1.0f - (GLfloat)(j+1) / STACKS);
 							}
 						}
 
@@ -615,21 +615,21 @@ namespace jikoLib{
 							vertex.push_back(radius*sin(M_PI * (GLfloat)(STACKS - 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i + 1) / SLICES));
 							vertex.push_back(radius*cos(M_PI * (GLfloat)(STACKS - 1) / STACKS));
 
-							texcrd.push_back(1.0f);
-							texcrd.push_back(1.0f);
+							texcrd.push_back((GLfloat)(i+1)/SLICES);
+							texcrd.push_back(1.0f / STACKS);
 
 							vertex.push_back(radius*sin(M_PI * (GLfloat)(STACKS - 1) / STACKS)*cos(2 * M_PI*(GLfloat)(i) / SLICES));
 							vertex.push_back(radius*sin(M_PI * (GLfloat)(STACKS - 1) / STACKS)*sin(2 * M_PI*(GLfloat)(i) / SLICES));
 							vertex.push_back(radius*cos(M_PI * (GLfloat)(STACKS - 1) / STACKS));
-							
-							texcrd.push_back(0.0f);
-							texcrd.push_back(1.0f);
+
+							texcrd.push_back((GLfloat)(i)/SLICES);
+							texcrd.push_back(1.0f / STACKS);
 
 							vertex.push_back(0);
 							vertex.push_back(0);
 							vertex.push_back(-radius);
 
-							texcrd.push_back(0.5f);
+							texcrd.push_back((GLfloat)(i)/SLICES);
 							texcrd.push_back(0.0f);
 						}
 
