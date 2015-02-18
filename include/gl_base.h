@@ -242,7 +242,7 @@ namespace jikoLib{
 							CHECK_GL_ERROR;
 							DEBUG_OUT("attach shader! shader id is "
 									<< shader.getID() 
-									<< ". shaderprog id is" 
+									<< ". shaderprog id is " 
 									<< shaderprog_id);
 							return *this;
 						}
@@ -1015,7 +1015,7 @@ namespace jikoLib{
 					{
 						if(32 <= TexUnitNum)
 						{
-							std::cerr << "TextureUnit must be between 0 and 32. --set TextureUnit 0" << std::endl;
+							std::cerr << "TextureUnit must be between 0 to 32. --set TextureUnit 0" << std::endl;
 							TexUnitNum = 0;
 						}
 						glActiveTexture(GL_TEXTURE0 + TexUnitNum);
@@ -1108,6 +1108,18 @@ namespace jikoLib{
 							SetParamTraits<Args...>::func(TargetType::TEXTURE_TARGET);
 							unbind();
 						}
+
+					template<typename... Args>
+					void setBorderColor(Args... args)
+					{
+						static_assert(is_all_same<GLfloat, Args...>::value, "array type must be GLfloat");
+						const GLfloat array[] = {args...};
+						static_assert(length(array)==4, "array size must be 4");
+						bind();
+						glTexParameterfv(TargetType::TEXTURE_TARGET, GL_TEXTURE_BORDER_COLOR, array);
+						CHECK_GL_ERROR;
+						unbind();
+					}
 			};
 
 
@@ -1232,6 +1244,7 @@ namespace jikoLib{
 							tex.bind();
 							fbAttachTraits<tex_TargetType>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, tex_TargetType::TEXTURE_TARGET, tex.getID(), level);
 							CHECK_GL_ERROR;
+							DEBUG_OUT("attach texture. texture id is " << tex.getID());
 							tex.unbind();
 							unbind();
 						}
@@ -1245,6 +1258,7 @@ namespace jikoLib{
 							tex.bind();
 							fbAttachTraits<Texture3D>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, Texture3D::TEXTURE_TARGET, tex.getID(), level, layer);
 							CHECK_GL_ERROR;
+							DEBUG_OUT("attach texture. texture id is " << tex.getID());
 							tex.unbind();
 							unbind();
 						}
@@ -1258,6 +1272,7 @@ namespace jikoLib{
 							tex.bind();
 							fbAttachTraits<TextureCubeMap>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, CubeMapType::CUBEMAP_VALUE, tex.getID(), level);
 							CHECK_GL_ERROR;
+							DEBUG_OUT("attach texture. texture id is " << tex.getID());
 							tex.unbind();
 							unbind();
 						}
@@ -1272,6 +1287,7 @@ namespace jikoLib{
 							tex.bind();
 							fbAttachTraits<tex_TargetType>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, tex_TargetType::TEXTURE_TARGET, 0, level);
 							CHECK_GL_ERROR;
+							DEBUG_OUT("detach texture. texture id is " << tex.getID());
 							tex.unbind();
 							unbind();
 						}
@@ -1285,6 +1301,7 @@ namespace jikoLib{
 							tex.bind();
 							fbAttachTraits<Texture3D>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, Texture3D::TEXTURE_TARGET, 0, level, layer);
 							CHECK_GL_ERROR;
+							DEBUG_OUT("detach texture. texture id is " << tex.getID());
 							tex.unbind();
 							unbind();
 						}
@@ -1298,9 +1315,32 @@ namespace jikoLib{
 							tex.bind();
 							fbAttachTraits<TextureCubeMap>::func(attachTargetType::FRAMEBUFFER_TARGET, Attachment::ATTACHMENT, CubeMapType::CUBEMAP_VALUE, 0, level);
 							CHECK_GL_ERROR;
+							DEBUG_OUT("detach texture. texture id is " << tex.getID());
 							tex.unbind();
 							unbind();
 						}
+					
+					template<typename... Args>
+						void drawBuffer(Args... args)
+						{
+							//static_assert(is_all_same<GLenum, Args...>::value, "Args must be GLenum");
+							bind();
+							const GLenum array[] = {static_cast<GLenum>(args)...};
+							static_assert(length(array) <= 6, "array length must be under 6");
+							glDrawBuffers(length(array), array);
+							CHECK_GL_ERROR;
+							unbind();
+						}
+
+						void readBuffer(GLenum arg)
+						{
+							bind();
+							glReadBuffer(arg);
+							CHECK_GL_ERROR;
+							unbind();
+						}
+
+
 
 			};
 
@@ -1384,6 +1424,15 @@ namespace jikoLib{
 					inline GLuint getID() const
 					{
 						return renderbuffer_id;
+					}
+
+					template<typename Format>
+					void storage(int width, int height)
+					{
+						bind();
+						glRenderbufferStorage(TargetType::RENDERBUFFER_TARGET, Format::TEXTURE_COLOR, width, height);
+						CHECK_GL_ERROR;
+						unbind();
 					}
 
 			};

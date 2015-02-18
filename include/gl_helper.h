@@ -18,6 +18,17 @@ namespace jikoLib
 	{
 
 		/**
+		 * Get array length
+		 *
+		 */
+
+		template<typename T, std::size_t SIZE>
+			constexpr std::size_t length(const T (&)[SIZE])
+			{
+				return SIZE;
+			}
+
+		/**
 		 * Multi static array object
 		 *
 		 */
@@ -664,6 +675,18 @@ namespace jikoLib
 			constexpr static ILenum IL_COLOR = IL_RGBA;
 		};
 
+		struct DepthComponent
+		{
+			constexpr static GLenum TEXTURE_COLOR = GL_DEPTH_COMPONENT;
+			constexpr static std::size_t ALIGN = 4;
+		};
+
+		struct DepthComponent16
+		{
+			constexpr static GLenum TEXTURE_COLOR = GL_DEPTH_COMPONENT16;
+			constexpr static std::size_t ALIGN = 4;
+		};
+
 		/**
 		 * TexImage
 		 *
@@ -874,7 +897,10 @@ namespace jikoLib
 
 		template<GLenum param>
 			struct Wrap_S{
-				static_assert((param == GL_CLAMP_TO_EDGE)||( param == GL_REPEAT), "invalid param");
+				static_assert((param == GL_CLAMP_TO_EDGE)||
+								  (param == GL_REPEAT)||
+								  (param == GL_CLAMP_TO_BORDER)||
+								  (param == GL_CLAMP), "invalid param");
 				static void setTextureParameter(GLenum target)
 				{
 					glTexParameteri(target, GL_TEXTURE_WRAP_S, param);
@@ -883,7 +909,10 @@ namespace jikoLib
 			};
 		template<GLenum param>
 			struct Wrap_T{
-				static_assert((param == GL_CLAMP_TO_EDGE)||(param == GL_REPEAT), "invalid param");
+				static_assert((param == GL_CLAMP_TO_EDGE)||
+								  (param == GL_REPEAT)||
+								  (param == GL_CLAMP_TO_BORDER)||
+								  (param == GL_CLAMP), "invalid param");
 				static void setTextureParameter(GLenum target)
 				{
 					glTexParameteri(target, GL_TEXTURE_WRAP_T, param);
@@ -892,7 +921,10 @@ namespace jikoLib
 			};
 		template<GLenum param>
 			struct Wrap_R{
-				static_assert((param == GL_CLAMP_TO_EDGE)||(param == GL_REPEAT), "invalid param");
+				static_assert((param == GL_CLAMP_TO_EDGE)||
+								  (param == GL_REPEAT)||
+								  (param == GL_CLAMP_TO_BORDER)||
+								  (param == GL_CLAMP), "invalid param");
 				static void setTextureParameter(GLenum target)
 				{
 					glTexParameteri(target, GL_TEXTURE_WRAP_R, param);
@@ -901,7 +933,8 @@ namespace jikoLib
 			};
 		template<GLenum param>
 			struct Mag_Filter{
-				static_assert((param == GL_NEAREST)||(param == GL_LINEAR), "invalid param");
+				static_assert((param == GL_NEAREST)||
+								  (param == GL_LINEAR), "invalid param");
 				static void setTextureParameter(GLenum target)
 				{
 					glTexParameteri(target, GL_TEXTURE_MAG_FILTER, param);
@@ -910,10 +943,37 @@ namespace jikoLib
 			};
 		template<GLenum param>
 			struct Min_Filter{
-				static_assert((param == GL_NEAREST)||(param == GL_LINEAR), "invalid param");
+				static_assert((param == GL_NEAREST)||
+								  (param == GL_LINEAR), "invalid param");
 				static void setTextureParameter(GLenum target)
 				{
 					glTexParameteri(target, GL_TEXTURE_MIN_FILTER, param);
+					CHECK_GL_ERROR;
+				}
+			};
+		template<GLenum param>
+			struct CompareFunc{
+				static_assert((param == GL_LEQUAL)||
+								  (param == GL_GEQUAL)||
+								  (param == GL_LESS)||
+								  (param == GL_GREATER)||
+								  (param == GL_EQUAL)||
+								  (param == GL_NOTEQUAL)||
+								  (param == GL_ALWAYS)||
+								  (param == GL_NEVER), "invalid param");
+				static void setTextureParameter(GLenum target)
+				{
+					glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, param);
+					CHECK_GL_ERROR;
+				}
+			};
+		template<GLenum param>
+			struct CompareMode{
+				static_assert((param == GL_COMPARE_REF_TO_TEXTURE)||
+								  (param == GL_NONE), "invalid param");
+				static void setTextureParameter(GLenum target)
+				{
+					glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, param);
 					CHECK_GL_ERROR;
 				}
 			};
@@ -966,10 +1026,10 @@ namespace jikoLib
 		 */
 
 		template<std::size_t i>
-		struct ColorAttachment{
-			static_assert(0<=i && i<16,"number must be less than 16.");
-			constexpr static GLenum ATTACHMENT = GL_COLOR_ATTACHMENT0 + i;
-		};
+			struct ColorAttachment{
+				static_assert(0<=i && i<16,"number must be less than 16.");
+				constexpr static GLenum ATTACHMENT = GL_COLOR_ATTACHMENT0 + i;
+			};
 
 		struct DepthAttachment{
 			constexpr static GLenum ATTACHMENT = GL_DEPTH_ATTACHMENT;

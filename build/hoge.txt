@@ -1,0 +1,57 @@
+--- OpenGL initialize complete ---
+OpenGL Vendor: Intel Open Source Technology Center
+OpenGL Renderer: Mesa DRI Intel(R) Ironlake Mobile 
+OpenGL Version: 2.1 Mesa 10.4.4
+ 
+--- devIL initialize complete ---
+shader created! shader_id is 1
+shader created! shader_id is 2
+shaderprog created! shaderprog id is 3
+shader compiled!
+shader compiled!
+attach shader! shader id is 1. shaderprog id is 3
+attach shader! shader id is 2. shaderprog id is 3
+shader linked!
+shader created! shader_id is 4
+shaderprog created! shaderprog id is 5
+shader compiled!
+attach shader! shader id is 4. shaderprog id is 5
+shader linked!
+vbuffer created! id is 1
+vbuffer created! id is 2
+vbuffer created! id is 3
+vbuffer created! id is 4
+varray created! id is 1
+allocate 48 B success! buffer id is 1
+allocate 48 B success! buffer id is 2
+allocate 32 B success! buffer id is 3
+allocate 12 B success! buffer id is 4
+vbuffer created! id is 5
+vbuffer created! id is 6
+vbuffer created! id is 7
+vbuffer created! id is 8
+varray created! id is 2
+allocate 176400 B success! buffer id is 5
+allocate 176400 B success! buffer id is 6
+allocate 117600 B success! buffer id is 7
+texture created! id is 1
+texture created! id is 2
+framebuffer created! id is 1
+framebuffer id 1 destructed!
+texture id 2 destructed!
+texture id 1 destructed!
+varray id 2 destructed!
+vbuffer id 8 destructed!
+vbuffer id 7 destructed!
+vbuffer id 6 destructed!
+vbuffer id 5 destructed!
+varray id 1 destructed!
+vbuffer id 4 destructed!
+vbuffer id 3 destructed!
+vbuffer id 2 destructed!
+vbuffer id 1 destructed!
+shaderprog id 5 destructed!
+shader id 4 destructed!
+shaderprog id 3 destructed!
+shader id 2 destructed!
+shader id 1 destructed!
