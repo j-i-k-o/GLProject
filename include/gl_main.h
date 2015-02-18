@@ -56,27 +56,27 @@ namespace jikoLib{
 				}
 
 				/*
-				void finalize(const std::function<void()> &fin_func)
-				{
+					void finalize(const std::function<void()> &fin_func)
+					{
 					if(_is_initialized)
 					{
-						fin_func();
-						DEBUG_OUT("OpenGL Context is closed.");
-						_is_initialized = false;
+					fin_func();
+					DEBUG_OUT("OpenGL Context is closed.");
+					_is_initialized = false;
 					}
-				}
-				*/
+					}
+					*/
 
 				/*
-				void makeCurrent(const std::function<void()> &makec_func)
-				{
+					void makeCurrent(const std::function<void()> &makec_func)
+					{
 					makec_func();
 					DEBUG_OUT("Make Current");
-				}
-				*/
+					}
+					*/
 
 
-				
+
 				GLObject& operator<<(Begin&&)
 					//initializer
 				{
@@ -85,18 +85,18 @@ namespace jikoLib{
 				}
 				/*
 
-				GLObject& operator<<(MakeCurrent&& obj)
-					//make current
+					GLObject& operator<<(MakeCurrent&& obj)
+				//make current
 				{
-					makeCurrent(obj.m_window);
-					return *this;
+				makeCurrent(obj.m_window);
+				return *this;
 				}
 
 				GLObject& operator<<(End&&)
-					//finalizer
+				//finalizer
 				{
-					finalize();
-					return *this;
+				finalize();
+				return *this;
 				}
 				*/
 
@@ -143,14 +143,68 @@ namespace jikoLib{
 						this->connectAttrib(prog, mesh.getVertex(), mesh.getVArray(), vertex_attr);
 						this->connectAttrib(prog, mesh.getNormal(), mesh.getVArray(), normal_attr);
 						if(texcrd_attr != "")
-						this->connectAttrib(prog, mesh.getTexcrd(), mesh.getVArray(), texcrd_attr);
+							this->connectAttrib(prog, mesh.getTexcrd(), mesh.getVArray(), texcrd_attr);
 					}
 
 
-					//draw
+				inline void viewport(GLint x, GLint y, GLsizei width, GLsizei height)
+				{
+					glViewport(x,y,width,height);
+				}
 
-				
-				
+				template<typename fbTargetType, typename fbAllocator>
+					inline void viewport(GLint x, GLint y, GLsizei width, GLsizei height,const FrameBuffer<fbTargetType, fbAllocator> &fbo)
+					{
+						fbo.bind();
+						glViewport(x,y,width,height);
+						fbo.unbind();
+					}
+
+				inline void clearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
+				{
+					glClearColor(red, green, blue, alpha);
+				}
+
+				template<typename fbTargetType, typename fbAllocator>
+					inline void clearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha, const FrameBuffer<fbTargetType, fbAllocator> &fbo)
+					{
+						fbo.bind();
+						glClearColor(red, green, blue, alpha);
+						fbo.unbind();
+					}
+
+				inline void clearDepth(GLclampd depth)
+				{
+					glClearDepth(depth);
+				}
+
+				template<typename fbTargetType, typename fbAllocator>
+					inline void clearDepth(GLclampd depth, const FrameBuffer<fbTargetType, fbAllocator> &fbo)
+					{
+						fbo.bind();
+						glClearDepth(depth);
+						fbo.unbind();
+					}
+
+				inline void clear(GLbitfield mask)
+				{
+					glClear(mask);
+				}
+
+				template<typename fbTargetType, typename fbAllocator>
+					inline void clear(GLbitfield mask, const FrameBuffer<fbTargetType, fbAllocator> &fbo)
+					{
+						fbo.bind();
+						glClear(mask);
+						fbo.unbind();
+					}
+
+
+
+
+
+				//draw
+
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
 					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ElementArrayBuffer, vbUsage, vbAlloc> &ibo)
 					{
@@ -169,7 +223,7 @@ namespace jikoLib{
 						ibo.unbind();
 						varray.unbind();
 					}
-					
+
 
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename vbUsage, typename vbAlloc>
 					void draw(const VertexArray<varrAlloc> &varray, const ShaderProg<Sp_Alloc> &program, const VertexBuffer<ArrayBuffer, vbUsage, vbAlloc> &vbo)
@@ -186,8 +240,8 @@ namespace jikoLib{
 						program.unbind();
 						varray.unbind();
 					}
-					
-					
+
+
 
 				template<typename RenderMode = rm_Triangles, typename varrAlloc, typename Sp_Alloc, typename TexTarget, typename TexAlloc, typename vbUsage, typename vbAlloc>
 					void draw(
@@ -221,13 +275,13 @@ namespace jikoLib{
 						}
 
 						draw<RenderMode>(varray, program, vbo);
-						
+
 						for(auto&& var : tex_array) {
 							std::get<0>(var).unbind();
 						}
 					}
 
-				
+
 				template<typename RenderMode = rm_Triangles, typename Sp_Alloc>
 					inline void draw(const Mesh3D &obj, const ShaderProg<Sp_Alloc> &program)
 					{
@@ -236,8 +290,8 @@ namespace jikoLib{
 						else
 							draw<RenderMode>(obj.getVArray(), program, obj.getVertex());
 					}
-					
-				
+
+
 				template<typename RenderMode = rm_Triangles, typename Sp_Alloc, typename TexTarget, typename TexAlloc>
 					inline void draw(const Mesh3D &obj, const ShaderProg<Sp_Alloc> &program, const std::vector<std::tuple<Texture<TexTarget, TexAlloc>, std::size_t>> &tex_array)
 					{

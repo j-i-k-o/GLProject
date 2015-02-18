@@ -198,6 +198,7 @@ int main(int argc, char* argv[])
 		CHECK_GL_ERROR;
 		
 		fbo.bind();
+		//be sure to call fbo.bind() before calling glClear~~!!
 		glViewport(0,0,512,512);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClearDepth(1.0);

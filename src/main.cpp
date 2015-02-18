@@ -46,8 +46,8 @@ int main(int argc, char* argv[])
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); 
 
 
-	//SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-	SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1200, 800, SDL_WINDOW_OPENGL);
+	SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 200, 200, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	//SDL_Window* window = SDL_CreateWindow("SDL_Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1200, 100, SDL_WINDOW_OPENGL);
 	if(window == NULL)
 	{
 		std::cerr << "Window could not be created!: " << SDL_GetError() << std::endl;
@@ -157,35 +157,35 @@ int main(int argc, char* argv[])
 	brick.setParameter<Wrap_S<GL_REPEAT>, Wrap_T<GL_REPEAT>>();
 
 	RBO render;
-	render.storage<DepthComponent16>(512, 512);
+	render.storage<DepthComponent>(1024, 1024);
 	Texture<Texture2D> canvas;
-	canvas.texImage2D(512, 512);
+	canvas.texImage2D(1024, 1024);
 	canvas.setParameter<Wrap_S<GL_REPEAT>, Wrap_T<GL_REPEAT>>();
 	FBO fbo;
 	fbo.attach<ColorAttachment<0>>(canvas);
 	fbo.attach<DepthAttachment>(render);
 
-	camera.setAspect(512, 512);
+	camera.setAspect(1024, 1024);
 	program.setUniformMatrixXtv("view", glm::value_ptr(camera.getViewMatrix()), 1, 4);
 	program.setUniformMatrixXtv("projection", glm::value_ptr(camera.getProjectionMatrix()), 1, 4);
 
-	camera.setPos(glm::vec3(100.0f, 0.0f, 400.0f));
-	camera.setDrct(glm::vec3(-100.0f, 0.0f, 0.0f));
+	camera.setPos(glm::vec3(0.0f, 0.0f, 200.0f));
+	camera.setDrct(glm::vec3(0.0f, 0.0f, 0.0f));
 	camera.setUp(glm::vec3(0.0f, 1.0f, 0.0f));
-	camera.setAspect(1200, 800);
 	simple_program.setUniformMatrixXtv("view", glm::value_ptr(camera.getViewMatrix()), 1, 4);
-	simple_program.setUniformMatrixXtv("projection", glm::value_ptr(camera.getProjectionMatrix()), 1, 4);
 	simple_program.setUniformXt("textureobj", 0);
-
-	
 
 
 	bool quit = false;
 	SDL_Event e;
 	//	SDL_WaitThread(threadID, NULL);
+	
 
 	while( !quit )
 	{
+
+		int width;
+		int height;
 		//Handle events on queue
 		while( SDL_PollEvent( &e ) != 0 )
 		{
@@ -194,37 +194,54 @@ int main(int argc, char* argv[])
 			{
 				quit = true;
 			}
+			if(e.type == SDL_WINDOWEVENT)
+			{
+				switch(e.window.event)
+				{
+					
+					case SDL_WINDOWEVENT_SIZE_CHANGED:
+						width = e.window.data1;
+						height = e.window.data2;
+						break;
+				}
+			}
 		}
 		CHECK_GL_ERROR;
 		
-		fbo.bind();
-		glViewport(0,0,512,512);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClearDepth(1.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		obj.viewport(0,0,1024,1024, fbo);
+		obj.clearColor(0.0f, 0.0f, 0.0f, 1.0f, fbo);
+		obj.clearDepth(1.0, fbo);
+		obj.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, fbo);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		obj.connectAttrib(program, floor_mesh, "vertex", "normal", "texcrd");
 		program.setUniformMatrixXtv("model", glm::value_ptr(floor_mesh.getModelMatrix()), 1, 4);
 		texture.bind(0);
+		fbo.bind();
 		obj.draw(floor_mesh, program);
+		fbo.unbind();
 		texture.unbind();
 		obj.connectAttrib(program, sphere_mesh, "vertex", "normal", "texcrd");
 		program.setUniformMatrixXtv("model", glm::value_ptr(sphere_mesh.getModelMatrix()), 1, 4);
 		texture.bind(0);
+		fbo.bind();
 		obj.draw(sphere_mesh, program);
-		texture.unbind();
 		fbo.unbind();
+		texture.unbind();
+		
 
 		
-		glViewport(0,0,1200, 800);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClearDepth(1.0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		obj.viewport(0,0,width,height);
+		obj.clearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		obj.clearDepth(1.0);
+		obj.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		obj.connectAttrib(simple_program, floor_mesh, "vertex", "normal", "texcrd");
 		simple_program.setUniformMatrixXtv("model", glm::value_ptr(floor_mesh.getModelMatrix()), 1, 4);
+		camera.setAspect(width,height);
+		simple_program.setUniformMatrixXtv("projection", glm::value_ptr(camera.getProjectionMatrix()), 1, 4);
 		canvas.bind(0);
 		obj.draw(floor_mesh, simple_program);
 		canvas.unbind();
