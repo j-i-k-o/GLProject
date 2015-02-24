@@ -9,15 +9,11 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-varying vec3 Vertex;
-varying vec3 Normal;
-varying mat4 View;
+varying vec2 Texcrd;
 
 void main()
 {
-	Vertex = (view * model * vec4(vertex, 1.0)).xyz;
-	Normal = normalize(mat3(view * model) * normal);
-	View = view;
+	Texcrd = texcrd;
 	gl_Position = projection * view * model * vec4(vertex, 1.0);
 }
 )"

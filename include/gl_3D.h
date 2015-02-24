@@ -527,6 +527,228 @@ namespace jikoLib{
 					}
 
 			};
+
+			class CubeMap : public AbstractShape{
+				private:
+
+				public:
+					CubeMap(GLfloat side)
+					{
+						vertex.reserve(108);
+						normal.reserve(108);
+						texcrd.reserve(72);
+
+						//forward
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						//back
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						//right
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						//left
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						//up
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+
+						//down
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back( side/2);
+
+						vertex.push_back( side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+						vertex.push_back(-side/2);
+
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(0.0f);
+							normal.push_back(0.0f);
+							normal.push_back(-1.0f);
+						}
+
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(0.0f);
+							normal.push_back(0.0f);
+							normal.push_back( 1.0f);
+						}
+
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(-1.0f);
+							normal.push_back(0.0f);
+							normal.push_back(0.0f);
+						}
+
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back( 1.0f);
+							normal.push_back(0.0f);
+							normal.push_back(0.0f);
+						}
+
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(0.0f);
+							normal.push_back(-1.0f);
+							normal.push_back(0.0f);
+						}
+
+						for(int i = 0; i < 6; i++)
+						{
+							normal.push_back(0.0f);
+							normal.push_back( 1.0f);
+							normal.push_back(0.0f);
+						}
+
+						for(int i = 0; i < 6; i++)
+						{
+							texcrd.push_back(0.0f);
+							texcrd.push_back(0.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(0.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(0.0f);
+							texcrd.push_back(1.0f);
+							texcrd.push_back(0.0f);
+							texcrd.push_back(0.0f);
+						}
+					}
+
+			};
+
 			class Sphere : public AbstractShape
 			{
 				private:
@@ -542,7 +764,7 @@ namespace jikoLib{
 							vertex.push_back(0);
 							vertex.push_back(0);
 							vertex.push_back(radius);
-							
+
 							texcrd.push_back((GLfloat)i/SLICES);
 							texcrd.push_back(1.0f);
 

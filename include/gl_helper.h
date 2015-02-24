@@ -436,6 +436,12 @@ namespace jikoLib
 			constexpr static GLenum SHADER_TYPE = GL_FRAGMENT_SHADER;
 		};
 
+		//Geometry Shader (ARB extension)
+		struct GeometryShader
+		{
+			constexpr static GLenum SHADER_TYPE = GL_GEOMETRY_SHADER_ARB;
+		};
+
 		/**
 		 * "link-these" struct for ShaderProg
 		 */
@@ -974,6 +980,16 @@ namespace jikoLib
 				static void setTextureParameter(GLenum target)
 				{
 					glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, param);
+					CHECK_GL_ERROR;
+				}
+			};
+		template<GLenum param>
+			struct GenerateMipmap{
+				static_assert((param == GL_TRUE)||
+								  (param == GL_FALSE), "invalid param");
+				static void setTextureParameter(GLenum target)
+				{
+					glTexParameteri(target, GL_GENERATE_MIPMAP, param);
 					CHECK_GL_ERROR;
 				}
 			};

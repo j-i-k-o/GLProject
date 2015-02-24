@@ -1120,6 +1120,16 @@ namespace jikoLib{
 						CHECK_GL_ERROR;
 						unbind();
 					}
+
+					void generateMipmap()
+					{
+						bind();
+						setParameter<GenerateMipmap<GL_TRUE>>();
+						glGenerateMipmap(TargetType::TEXTURE_TARGET);
+						unbind();
+					}
+
+
 			};
 
 
